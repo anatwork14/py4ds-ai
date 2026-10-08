@@ -94,6 +94,8 @@ def _format_validation(root: Path, selection: dict[str, Any]) -> str:
     )
     if not math.isclose(winner[1], selected_score, rel_tol=0.0, abs_tol=1e-12):
         raise ValueError("Selected validation macro-F1 does not match candidate metrics")
+    if selected != winner[0]:
+        raise ValueError("Frozen selected_model must exactly match the winning candidate")
     if baseline is None:
         raise ValueError("No saved validation majority-baseline metrics were found")
 
@@ -119,6 +121,9 @@ def _validate_final_metrics(
         raise ValueError("Final metrics do not match the frozen selected model")
     if metrics.get("manifest_sha256") != selection.get("manifest_sha256"):
         raise ValueError("Final metrics manifest hash does not match selection")
+    checkpoint_hash = selected.get("checkpoint_sha256")
+    if checkpoint_hash is not None and metrics.get("checkpoint_sha256") != checkpoint_hash:
+        raise ValueError("Final metrics checkpoint hash does not match frozen selection")
     if metrics.get("test_status") != "SCORED ONCE" or metrics.get("test_evaluations") != 1:
         raise ValueError("Final report requires exactly one completed test evaluation")
 
@@ -148,20 +153,39 @@ def _validate_final_metrics(
         raise ValueError("Confusion matrix total does not match test_count")
     if not isinstance(per_class, list) or len(per_class) != len(names):
         raise ValueError("Per-class metrics must match the class list")
+    class_f1: list[float] = []
     for index, row in enumerate(per_class):
-        if row.get("class_name") != names[index] or row.get("support") != sum(
-            checked_matrix[index]
+        support = sum(checked_matrix[index])
+        if not isinstance(row, dict) or row.get("class_name") != names[index] or (
+            row.get("support") != support
+            or isinstance(row.get("support"), bool)
         ):
             raise ValueError("Per-class names/support do not match the confusion matrix")
-        for key in ("precision", "recall", "f1"):
-            _finite_number(row.get(key), f"per-class {key}")
+        true_positives = checked_matrix[index][index]
+        predicted_count = sum(matrix_row[index] for matrix_row in checked_matrix)
+        precision = true_positives / predicted_count if predicted_count else 0.0
+        recall = true_positives / support if support else 0.0
+        f1 = 2 * precision * recall / (precision + recall) if precision + recall else 0.0
+        for key, expected in (("precision", precision), ("recall", recall), ("f1", f1)):
+            actual = _finite_number(row.get(key), f"per-class {key}")
+            if not math.isclose(actual, expected, rel_tol=0.0, abs_tol=1e-12):
+                raise ValueError(f"Per-class {key} does not match the confusion matrix")
+        class_f1.append(f1)
 
     accuracy = _finite_number(metrics.get("accuracy"), "test accuracy")
     diagonal = sum(checked_matrix[i][i] for i in range(len(names)))
     if not math.isclose(accuracy, diagonal / test_count, rel_tol=0.0, abs_tol=1e-12):
         raise ValueError("Accuracy does not match the confusion matrix")
-    _finite_number(metrics.get("macro_f1"), "test macro-F1")
-    _finite_number(metrics.get("weighted_f1"), "test weighted-F1")
+    macro_f1 = _finite_number(metrics.get("macro_f1"), "test macro-F1")
+    weighted_f1 = _finite_number(metrics.get("weighted_f1"), "test weighted-F1")
+    if not math.isclose(macro_f1, sum(class_f1) / len(names), rel_tol=0.0, abs_tol=1e-12):
+        raise ValueError("Macro-F1 does not match the confusion matrix")
+    expected_weighted = sum(
+        score * sum(checked_matrix[index])
+        for index, score in enumerate(class_f1)
+    ) / test_count
+    if not math.isclose(weighted_f1, expected_weighted, rel_tol=0.0, abs_tol=1e-12):
+        raise ValueError("Weighted-F1 does not match the confusion matrix")
     for key in ("parameters_total", "parameters_trainable"):
         value = metrics.get(key)
         if isinstance(value, bool) or not isinstance(value, int) or value < 0:
