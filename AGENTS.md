@@ -23,7 +23,7 @@ Read the original repository before modifying code: README.md, dataset_metadata.
 
 ## Scope: models that must actually be compared
 
-A. Majority-class or stratified random baseline, using no visual signal; evaluate on validation and once at final test.
+A. Majority-class or stratified random baseline, using no visual signal; evaluate on validation only. The held-out test was already scored once for the frozen selected CNN, and must never be scored again.
 
 B. **Classical ML:** HOG + StandardScaler + optional PCA + LinearSVC; SIFT + Bag of Visual Words + LinearSVC or LogisticRegression. Implement feature-extractor interfaces with deterministic output and training-only fitting for codebook/PCA/scaler. Add a meaningful hyperparameter grid (e.g., SVM C, PCA components, vocabulary size) evaluated on train-validation only. Include clear preprocessing and engineered-feature visualizations.
 
@@ -44,7 +44,7 @@ Use PyTorch/torchvision as the primary DL stack, consistent with the course; sci
 
 - Use identical frozen manifests for fair comparisons and a single locked test protocol.
 - Choose hyperparameters and early-stopping epoch using train/validation only; test once after selections are frozen.
-- Output per-model train and validation details, plus final test: accuracy, macro-F1 (primary secondary metric), weighted-F1, per-class precision/recall/F1/support, confusion matrix with fixed class order, normalized confusion matrix, run time, parameter count for DL and inference latency under specified conditions.
+- Output per-model train and validation details. Final test metrics (accuracy, macro-F1, weighted-F1, per-class precision/recall/F1/support, confusion matrices and timing) exist **only for the previously frozen and evaluated winner**; all unselected models keep NOT RUN test status. Never run the final evaluator again for the existing manifest.
 - Save per-image CSV: image identifier, true label, predicted label, score/probability if supported; use decision values with correct naming when probabilities unavailable. For DL, report cross-entropy/learning curves and examples of errors; use Grad-CAM on a genuinely differentiable CNN for selected correct/incorrect samples, label as *qualitative* interpretation rather than ground-truth explanation.
 - Compare accuracy versus computation and error patterns, not just top score. Distinguish measured Intel dataset performance from published ImageNet results. No accuracy is a target to fabricate or "hit."
 - Run confidence intervals or repeated seeds when compute permits; if only one run, disclose the limitation.
@@ -92,3 +92,16 @@ At each phase report: changed files, exact commands run, actual tests passed/fai
 - notebooks/main.ipynb and report.pdf exist but require separate inspection before asserting what they contain or how they ran.
 
 Course-scope reference: the user's CO3135 Sessions 1–5 establish Python, NumPy, PyTorch tensors/autograd, Pandas, preprocessing, correct split/fit discipline and training loops. Explain unfamiliar CNN, HOG, SIFT, transfer-learning or interpretation concepts rather than assuming prior mastery.
+
+## Active execution mandate — academic finalization (2026-10-08)
+
+**All agents must read [`docs/AGENT_EXECUTION_PLAN.md`](docs/AGENT_EXECUTION_PLAN.md) before beginning new work.** That plan is the authoritative, current task-order, priority, acceptance, reporting and reviewer-stop protocol for final coursework submission. The earlier implementation phases above are historical guidance: do not replay phases, alter immutable experimental artifacts or treat superseded “evaluate baseline on final test” language as current permission.
+
+- Execute **TASK 01 → TASK 06** in order, gating each through a reviewer’s `GO` comment. Do not start a new gate simply because an earlier implementation exists.
+- Use **PR #3** as the GitHub evidence and checkpoint board. At most **six hours** of active work per approved task before a structured checkpoint; STOP on failed acceptance gates, unverified scientific claims, missing provenance, unsafe access or branch conflicts.
+- **GitHub Issues are presently disabled.** If the owner enables them, mirror the task numbers into dedicated Issues and link all to PR #3; never claim an issue was created when its API returns 410.
+- Local Ubuntu test/lint/artifact verification is required; GitHub Actions is **not** required and must not be added as a substitute.
+- All work must preserve the final test guard state `COMPLETED`; **never rerun the final evaluator or test images to obtain new measurements**. Read-only existing-prediction audit (`scripts/verify_saved_final_artifacts.py`) is permitted. Never rewrite a failing artifact hash to match tampered data.
+- Preserve the frozen selected model, manifest and locked final metrics; no additional model architectures, retuning, split changes or unapproved GPU training. Prior Grad-CAM overlays may be regenerated **from validation inputs only**.
+- Each checkpoint records precise PR head SHA, commands and exit codes, evidence hashes, changed files, blockers, current gate and the next proposed change. Reviewer replies `GO`, `CHANGES REQUESTED` or `BLOCKED`; silence is **not** approval.
+- PR stack: #1 (draft, onto `main`) → #2 (onto #1) → #3 (onto #2). Never merge, rebase or mark draft ready without explicit reviewer/owner approval.
