@@ -5,11 +5,16 @@ import hashlib
 import json
 from pathlib import Path
 
+import numpy as np
+from torchvision import transforms
+
 from PIL import Image
 
 from py4ds_ai.data.manifest import CLASS_NAMES
 from py4ds_ai.models.cnn_training import (
     _early_stop_reached,
+    _gradcam_overlay_base,
+    _transforms,
     build_resnet18_classifier,
     run_cnn_experiment,
 )
@@ -141,3 +146,25 @@ def test_one_epoch_run_saves_checkpoint_and_validation_artifacts(tmp_path: Path)
     assert metrics["test_status"] == "NOT RUN"
     assert len(metrics["epochs"]) == 1
     assert not (output / "predictions_test.csv").exists()
+
+
+def test_gradcam_background_matches_nonsquare_validation_crop() -> None:
+    # Make spatial distortion/crop errors obvious (not a uniform synthetic image).
+    rows, cols = np.indices((120, 300))
+    pixels = np.stack(
+        (
+            (cols % 256).astype(np.uint8),
+            (rows * 2 % 256).astype(np.uint8),
+            ((cols + rows) % 256).astype(np.uint8),
+        ),
+        axis=-1,
+    )
+    image = Image.fromarray(pixels, mode="RGB")
+    _, validation_transform = _transforms(pretrained=True)
+    model_tensor = validation_transform(image)
+    actual = _gradcam_overlay_base(model_tensor)
+
+    expected_image = transforms.CenterCrop(224)(transforms.Resize(256)(image))
+    expected = np.asarray(expected_image, dtype=np.float32) / 255.0
+    assert actual.shape == (224, 224, 3)
+    np.testing.assert_allclose(actual, expected, rtol=0, atol=2e-6)
