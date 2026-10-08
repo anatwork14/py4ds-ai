@@ -58,15 +58,23 @@ def test_classification_metrics_reject_unsupported_label_dtypes(
 
 @pytest.mark.filterwarnings("error")
 @pytest.mark.parametrize("invalid_side", ["truth", "prediction"])
-def test_classification_metrics_rejects_out_of_range_float_before_cast(
-    invalid_side: str,
+@pytest.mark.parametrize(
+    "invalid_labels",
+    [
+        pytest.param(np.array([float(2**63), 1.0]), id="int64-boundary-float"),
+        pytest.param(np.array([1e300, 1.0]), id="large-finite-float"),
+        pytest.param(np.array([np.uint64(2**64 - 1), np.uint64(1)]), id="uint64-maximum"),
+    ],
+)
+def test_classification_metrics_rejects_out_of_range_labels_before_cast(
+    invalid_side: str, invalid_labels: np.ndarray
 ) -> None:
-    y_true = np.array([0.0, 1.0])
-    y_pred = np.array([0.0, 1.0])
+    y_true = np.array([0, 1])
+    y_pred = np.array([0, 1])
     if invalid_side == "truth":
-        y_true[0] = float(2**63)
+        y_true = invalid_labels
     else:
-        y_pred[0] = float(2**63)
+        y_pred = invalid_labels
 
     with pytest.raises(ValueError, match="class range"):
         classification_metrics(y_true, y_pred)

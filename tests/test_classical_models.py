@@ -79,13 +79,31 @@ def test_validation_search_rejects_noninteger_labels(invalid_label: float) -> No
 
 
 @pytest.mark.filterwarnings("error")
-def test_validation_search_rejects_out_of_range_float_labels_before_cast() -> None:
+@pytest.mark.parametrize("invalid_split", ["train", "validation"])
+@pytest.mark.parametrize(
+    "invalid_labels",
+    [
+        pytest.param(np.array([float(2**63), 1.0]), id="int64-boundary-float"),
+        pytest.param(np.array([1e300, 1.0]), id="large-finite-float"),
+        pytest.param(np.array([np.uint64(2**64 - 1), np.uint64(1)]), id="uint64-maximum"),
+    ],
+)
+def test_validation_search_rejects_out_of_range_labels_before_cast(
+    invalid_split: str, invalid_labels: np.ndarray
+) -> None:
+    y_train = np.array([0, 1])
+    y_validation = np.array([0, 1])
+    if invalid_split == "train":
+        y_train = invalid_labels
+    else:
+        y_validation = invalid_labels
+
     with pytest.raises(ValueError, match="class range"):
         validation_search(
             np.array([[0.0], [1.0]]),
-            np.array([float(2**63), 1.0]),
-            np.array([[0.5]]),
-            np.array([0]),
+            y_train,
+            np.array([[0.5], [0.75]]),
+            y_validation,
             c_values=(1.0,),
             classifiers=("linear_svc",),
         )
