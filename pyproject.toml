@@ -1,0 +1,61 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "py4ds-ai"
+version = "0.1.0"
+description = "Reproducible Intel Natural Scene Classification research pipeline"
+requires-python = ">=3.11,<3.13"
+dependencies = [
+  "ImageHash>=4.3.2",
+  "matplotlib>=3.8",
+  "numpy>=1.26",
+  "opencv-python>=4.9,<5",
+  "pandas>=2.1",
+  "Pillow>=10",
+  "scikit-learn>=1.4",
+  "seaborn>=0.13",
+  "torch==2.14.0",
+  "torchvision==0.29.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8",
+  "ruff>=0.11",
+]
+
+[project.scripts]
+py4ds-prepare = "py4ds_ai.data.cli:main"
+py4ds-download = "py4ds_ai.data.download_cli:main"
+py4ds-classical = "py4ds_ai.models.classical_cli:main"
+py4ds-bovw = "py4ds_ai.models.bovw_cli:main"
+py4ds-resnet = "py4ds_ai.models.resnet_cli:main"
+py4ds-cnn = "py4ds_ai.models.cnn_training:main"
+py4ds-freeze-selection = "py4ds_ai.models.selection:main"
+py4ds-evaluate-final = "py4ds_ai.models.evaluate_final:main"
+
+[tool.uv.sources]
+torch = { index = "pytorch-cu126" }
+torchvision = { index = "pytorch-cu126" }
+
+[[tool.uv.index]]
+name = "pytorch-cu126"
+url = "https://download.pytorch.org/whl/cu126"
+explicit = true
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-ra"
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]

@@ -1,6 +1,6 @@
 # Literature Review — Intel Natural Scene Classification
 
-**Status:** source-verified background and proposed experiments; **NOT** a report of models trained in this repository. Checked 2026-10-08. All model-result cells for the Intel dataset must be populated from actual experiments.
+**Status:** source-verified background and proposed experiments; **NOT** a report of models trained in this repository. Checked 2026-10-08 (UTC+07:00 local time). All model-result cells for the Intel dataset must be populated from actual experiments.
 
 ## Research problem
 

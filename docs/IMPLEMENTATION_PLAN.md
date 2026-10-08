@@ -1,8 +1,8 @@
 # Implementation Plan and Acceptance Tests
 
-**Scope:** implement an auditable comparison of classical image features, pretrained ResNet18 embeddings and end-to-end trained CNNs for the Intel 6-class scene dataset. This document is a **build specification**, not a claim that the scripts below already exist or were run.
+**Scope:** implement an auditable comparison of classical image features, pretrained ResNet18 embeddings, and trained CNNs for the Intel six-class scene dataset. This document is the build specification and acceptance checklist; actual implementation, test, run, and limitation status is maintained in [`EXPERIMENT_STATUS.md`](EXPERIMENT_STATUS.md).
 
-## What is in the existing repository today (code inspection 2026-10-08)
+## Baseline repository before implementation audit
 
 - README.md: overall aim and run instructions, but mismatched clone/Colab references to PhatLavar/ML_ASSIGNMENT.
 - dataset_metadata.json: six alphabetically sorted labels, 150×150 input, an RGB mean/std vector, claimed 16,928 clean labeled images, split folder names. Raw audit trace and normalization provenance not included.
@@ -120,17 +120,62 @@ Each run must save:
 - figures/: loss/accuracy curves, confusion matrices, failure gallery, Grad-CAM, dataset plots.
 - stdout.log and structured warnings; checkpoint reference and cache manifest.
 
-## Proposed minimal execution CLI (names are specification until implemented)
+## Current and planned execution CLIs
 
-1. python scripts/prepare_data.py --data-root data/raw --val-fraction 0.15 --seed 42
-2. python scripts/run_classical.py --manifest data/manifests/split_manifest.csv --config configs/classical.yaml
-3. python scripts/run_embeddings.py --manifest data/manifests/split_manifest.csv --config configs/embeddings.yaml
-4. python scripts/run_deep.py --manifest data/manifests/split_manifest.csv --config configs/resnet18.yaml
-5. python scripts/evaluate_final.py --selection runs/selected_models.json
-6. python scripts/render_report.py --runs-dir runs --output docs/RESULTS.md
-7. python -m pytest -q
+All core preparation, classical, frozen-embedding, CNN-training, validation-selection, and final-evaluation CLIs are implemented. All five clean-manifest runs are complete and validation-only selection is frozen in `configs/final-selection-seed-42-phash-reviewed.json` (layer4-fine-tuned ResNet18; validation macro-F1 0.929137). Test evaluation remains NOT RUN. Next gates: independent review, commit code and selection, run the held-out test exactly once, complete the report, and submit reviewable phase-based PRs.
 
-**These commands are required targets, not verified runnable commands yet.** The coding agent must implement and execute them, document exact output/error and leave an auditable record.
+```bash
+uv run --locked --extra dev py4ds-prepare \
+  --data-root data/raw/extracted \
+  --output-dir data/manifests/seed-42-phash-reviewed \
+  --val-fraction 0.15 --seed 42 \
+  --phash-review-ledger configs/phash-review-seed-42.csv
+
+uv run --locked --extra dev py4ds-classical \
+  --manifest data/manifests/seed-42-phash-reviewed/split_manifest.csv \
+  --output-dir runs/seed-42-phash-reviewed/classical/hog --seed 42
+
+uv run --locked --extra dev py4ds-bovw \
+  --manifest data/manifests/seed-42-phash-reviewed/split_manifest.csv \
+  --output-dir runs/seed-42-phash-reviewed/classical/sift-bovw \
+  --vocab-sizes 64 128 --max-descriptors 30000 \
+  --c-values 0.1 1.0 --seed 42
+
+uv run --locked --extra dev py4ds-resnet \
+  --manifest data/manifests/seed-42-phash-reviewed/split_manifest.csv \
+  --output-dir runs/seed-42-phash-reviewed/resnet18/imagenet-v1 \
+  --pretrained --device cuda:0 --batch-size 64 --num-workers 4 \
+  --c-values 0.1 1.0 --seed 42
+
+uv run --locked --extra dev py4ds-cnn \
+  --manifest data/manifests/seed-42-phash-reviewed/split_manifest.csv \
+  --output-dir runs/seed-42-phash-reviewed/cnn18/head-imagenet-v1 \
+  --pretrained --device cuda:0 --epochs 5 --patience 2 \
+  --batch-size 64 --num-workers 4 --seed 42 --gradcam
+
+uv run --locked --extra dev py4ds-cnn \
+  --manifest data/manifests/seed-42-phash-reviewed/split_manifest.csv \
+  --output-dir runs/seed-42-phash-reviewed/cnn18/layer4-imagenet-v1 \
+  --pretrained --fine-tune-layer4 --device cuda:0 --epochs 5 --patience 2 \
+  --batch-size 64 --num-workers 4 --seed 42 \
+  --learning-rate 1e-3 --backbone-learning-rate 1e-5 --gradcam
+
+# Only after every validation run is complete:
+uv run --locked --extra dev py4ds-freeze-selection \
+  --runs-root runs/seed-42-phash-reviewed \
+  --manifest data/manifests/seed-42-phash-reviewed/split_manifest.csv \
+  --output configs/final-selection-seed-42-phash-reviewed.json
+
+# Run exactly once after the selection record is verified and committed:
+uv run --locked --extra dev py4ds-evaluate-final \
+  --project-root . \
+  --selection configs/final-selection-seed-42-phash-reviewed.json \
+  --manifest data/manifests/seed-42-phash-reviewed/split_manifest.csv \
+  --output-dir runs/seed-42-phash-reviewed/final-evaluation \
+  --device cuda:0 --batch-size 64 --num-workers 4
+```
+
+CNN training, validation selection, and final-evaluation CLIs are implemented and their help has been verified. The commands above define the current reviewed-manifest protocol; report rendering remains pending, and the test command must remain blocked until the selection record is frozen, verified, and committed.
 
 ## Test inventory (examples of executable assertions)
 

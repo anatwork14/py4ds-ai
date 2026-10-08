@@ -18,57 +18,56 @@
 | **Nguyễn Tấn Phát** | 2352889 | Member |
 | **Lê Đặng Khánh Quỳnh** | 2353037 | Member |
 
-## 🎯 Project Objectives
-This project aims to build a comprehensive end-to-end image classification pipeline using the **Intel Image Classification** dataset. The key objectives are:
-- **Automated Data Processing:** Implementing automated download, extraction, data auditing, and cleaning (including corrupt file removal, resolution validation, and duplicate detection via perceptual hashing).
-- **Dataset Standardization:** Establishing a robust and standardized train/validation/test split alongside comprehensive metadata tracking.
-- **Traditional Machine Learning:** Experimenting with handcrafted feature extraction techniques (HOG, SIFT with Bag-of-Visual-Words) coupled with traditional classifiers (Linear SVM, Logistic Regression).
-- **Deep Learning Feature Extraction:** Leveraging transfer learning using a pre-trained ResNet18 model for advanced feature embedding, followed by classification using traditional algorithms.
-- **Model Evaluation:** Conducting quantitative performance evaluations utilizing accuracy metrics, weighted F1-scores, detailed classification reports, and confusion matrices.
+## Project Objective
 
-## 🚀 Instructions for Running the Notebook
+Build a reproducible six-class image-classification comparison for the Intel Natural Scene Classification dataset: classical HOG/SIFT-BoVW models, frozen ImageNet ResNet18 features, and trained ResNet18 models. The fixed alphabetical label map is `buildings`, `forest`, `glacier`, `mountain`, `sea`, `street`.
 
-### Required Libraries
-Ensure the following libraries are installed (detailed in `requirements.txt`):
-- `numpy`, `pandas`, `scikit-learn`
-- `matplotlib`, `seaborn`
-- `torch`, `torchvision`
-- `Pillow`, `ImageHash`
+## Data and Split Protocol
 
-### How to Download Data and Run the Code
+Original files are kept read-only. The deterministic validation split is drawn from `seg_train`; `seg_test` remains the final test set; `seg_pred` is retained as an unlabeled prediction pool. Exact SHA-256 overlap is checked. pHash candidates are reviewed through the explicit ledger [`configs/phash-review-seed-42.csv`](configs/phash-review-seed-42.csv); 43 non-test rows were excluded conservatively, and all test rows were preserved. Only those flagged pairs were visually audited for leakage, not for exploratory analysis or model selection. Four near-duplicate candidate pairs within test remain a stated independence limitation. Exploratory sample montages use training images only.
 
-**Option A: Import this repository to Google Colab**
-1. Open up a new Google Colab notebook and clone the repository directly inside the notebook:
-   ```bash
-   !git clone https://github.com/PhatLavar/ML_ASSIGNMENT.git
-   ```
-2. Navigate to `notebooks/main.ipynb` or execute the core modules.
-The code is designed to automatically install dependencies, download the dataset using `gdown`, and run the entire pipeline correctly within the Colab environment.
+The real-data audit and its caveats are recorded in [`docs/PHASE1_DATA_AUDIT.md`](docs/PHASE1_DATA_AUDIT.md). The dataset is not included in Git.
 
-**Option B: Use the Standalone Notebook**
-1. Click the Colab Notebook link provided below.
-2. Execute the notebook cells sequentially from top to bottom. This standalone notebook has everything configured to download the dataset and run the pipeline independently.
+## Quick Start
 
-## 📂 Project Folder Structure
+Requires Python 3.12 and `uv`. **Platform scope:** the current lock pins `torch` and `torchvision` to the PyTorch `cu126` index and includes wheels for Python 3.11/3.12 on Linux (`manylinux_2_28`, x86_64 and aarch64) and Windows (x86_64). This describes wheel coverage in `uv.lock`, not verified end-to-end compatibility on every listed platform. Other platforms—especially macOS, for which the pinned PyTorch packages have no wheels in this lock—are not currently verified; the quick start is not a cross-platform compatibility claim.
 
-```text
-dataset_metadata.json       # Metadata containing data splits and normalization parameters
-requirements.txt            # Required Python packages
-README.md                   # Project documentation
-features/                   # Extracted deep features (NumPy arrays)
-   X_train_resnet18.npy
-   X_test_resnet18.npy
-   y_train_resnet18.npy
-   y_test_resnet18.npy
-modules/                    # Core Python modules
-   dataset_helper.py
-   deep_learning_helper.py
-   eda_helper.py
-   traditional_helper.py
-notebooks/
-   main.ipynb              # Main execution notebook
+```bash
+uv sync --locked --extra dev
+
+# After reviewing Kaggle's dataset terms and configuring user-managed credentials:
+uv run --locked --extra dev py4ds-download \
+  --output-dir data/raw --accept-terms \
+  --extract-to data/raw/extracted
+
+uv run --locked --extra dev py4ds-prepare \
+  --data-root data/raw/extracted \
+  --output-dir data/manifests/seed-42 \
+  --val-fraction 0.15 --seed 42
+
+# Apply the reviewed pHash ledger; this is the manifest used for comparisons:
+uv run --locked --extra dev py4ds-prepare \
+  --data-root data/raw/extracted \
+  --output-dir data/manifests/seed-42-phash-reviewed \
+  --val-fraction 0.15 --seed 42 \
+  --phash-review-ledger configs/phash-review-seed-42.csv
+
+uv run --locked --extra dev pytest -q
+uv run --locked --extra dev ruff check src tests scripts
 ```
 
-## 🔗 Links
-- **GitHub Repository:** [PhatLavar/ML_ASSIGNMENT](https://github.com/PhatLavar/ML_ASSIGNMENT)
-- **Colab Notebook:** [View on Google Colab](https://drive.google.com/file/d/1f7_Z47M5agd68b4Ej4XMUKScW-ZBTIsP/view?usp=sharing)
+If the `kaggle` executable is not installed, the Kaggle CLI can be invoked ephemerally after setting up its normal credentials:
+
+```bash
+mkdir -p data/raw
+cd data/raw
+uvx --from kaggle kaggle datasets download puneet6060/intel-image-classification
+```
+
+Then safely extract the downloaded ZIP using `extract_archive_safely` (see the reproduction command in `docs/PHASE1_DATA_AUDIT.md`). The Kaggle CLI reported the license label `copyright-authors`; review the dataset terms before use or redistribution. Never commit the archive or extracted images.
+
+## Research and Reproducibility
+
+Follow [`AGENTS.md`](AGENTS.md), [`docs/IMPLEMENTATION_PLAN.md`](docs/IMPLEMENTATION_PLAN.md), and [`docs/LITERATURE_REVIEW.md`](docs/LITERATURE_REVIEW.md). Each experiment must save its resolved configuration, split hash, predictions, metrics, plots, and environment provenance. Hyperparameter and checkpoint selection must use train/validation only; final test evaluation occurs only after selection is frozen.
+
+**Status:** repository and data audits are recorded. Earlier HOG, SIFT-BoVW, frozen ResNet18, and CNN runs used the pre-review manifest and are superseded. All five clean-manifest runs are complete; validation-only selection is frozen in `configs/final-selection-seed-42-phash-reviewed.json` and selects the layer4-fine-tuned ResNet18 CNN (validation macro-F1 0.929137). The reviewed manifest SHA-256 is `27c17f497e89a8f3b72975b45fcd1e44038e63edddbd4e721437a9a3500c982e`. Test evaluation remains NOT RUN; no final research report is available. Historical notebook/report scores are not current measurements.
