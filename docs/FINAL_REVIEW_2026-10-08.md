@@ -138,7 +138,7 @@ commit should only follow confirmed Ubuntu failures, documentation corrections,
 or a verified artifact-consistency issue. Maintain the sealed final-test guard
 as `COMPLETED` and preserve the validation-only selection record.
 
-**Approve the final coursework hand-in only after:** (a) all five Ubuntu
+**Approve the final coursework hand-in only after:** (a) all Ubuntu validation
 commands exit successfully, (b) the local artifact digests and aggregate
 metrics match the recorded evidence, (c) the corrected Grad-CAM regression
 passes and any shared Grad-CAM figures were regenerated from validation
