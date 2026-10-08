@@ -6,9 +6,8 @@ import json
 from pathlib import Path
 
 import numpy as np
-from torchvision import transforms
-
 from PIL import Image
+from torchvision import transforms
 
 from py4ds_ai.data.manifest import CLASS_NAMES
 from py4ds_ai.models.cnn_training import (
@@ -159,7 +158,7 @@ def test_gradcam_background_matches_nonsquare_validation_crop() -> None:
         ),
         axis=-1,
     )
-    image = Image.fromarray(pixels, mode="RGB")
+    image = Image.fromarray(pixels)
     _, validation_transform = _transforms(pretrained=True)
     model_tensor = validation_transform(image)
     actual = _gradcam_overlay_base(model_tensor)
