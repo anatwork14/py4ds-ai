@@ -12,11 +12,114 @@ Validation-only selection chose **Pretrained ResNet18, layer4 fine-tuned** (macr
 
 The per-class metrics and highest-count confusions below are generated from the saved final-evaluation metrics. Error patterns are descriptive of this test set and do not establish why the model made those errors.
 
+## Problem definition and research questions
+
+**Task:** given one RGB photograph, predict exactly one of six scene classes:
+`buildings`, `forest`, `glacier`, `mountain`, `sea`, or `street`.
+This is supervised multiclass image classification, not the demand forecasting,
+financial, credit-scoring, or anomaly-detection topics suggested as *examples*
+in the assignment. The difficulty is that classes may share structure, texture,
+lighting and objects; for instance a street scene can contain buildings and
+a glacier scene can contain mountains.
+
+The academic questions are: **(RQ1)** how do handcrafted descriptors compare
+with learned pretrained representations on a common validation split?
+**(RQ2)** does training a ResNet classification head or unfreezing its last
+convolutional block improve validation macro-F1 over a frozen representation?
+**(RQ3)** which classes account for the final selected model's mistakes?
+Macro-F1 is the primary selection criterion because it gives each scene class
+equal weight, regardless of frequency. Accuracy, weighted-F1 and per-class
+scores are supplementary.
+
+The hypotheses were documented before final test scoring in
+[`LITERATURE_REVIEW.md`](LITERATURE_REVIEW.md): pretrained representations
+could outperform handcrafted features (H1); fine-tuning might improve
+performance while increasing compute and overfitting risk (H2); semantically
+overlapping classes might generate systematic confusions (H3); and split
+integrity and transform consistency matter to validity (H4).
+The experiments provide evidence for H1 and an association relevant to H2/H3;
+they do **not** isolate the effect of each preprocessing choice (H4) or
+establish a causal explanation for particular mistakes.
+
 ## Dataset and evaluation protocol
 
 The project used the Intel Image Classification dataset distributed on Kaggle.[6] The comparison uses the pHash-reviewed manifest `data/manifests/seed-42-phash-reviewed/split_manifest.csv` (SHA-256 `27c17f497e89a8f3b72975b45fcd1e44038e63edddbd4e721437a9a3500c982e`) with 11,868 training, 2,100 validation, and 3,000 test rows. The fixed class order is `buildings`, `forest`, `glacier`, `mountain`, `sea`, `street`.
 
 The review ledger `configs/phash-review-seed-42.csv` (SHA-256 `c5bf7e94e3052e1cf123e28fb8e633153da6b5da15ee3f42447414919043bbf7`) records 52 pHash-pair decisions. For cross-split candidates, non-test endpoints were conservatively excluded; all 3,000 test rows were preserved. The reviewed manifest has no active cross-split pHash candidates or exact-hash overlaps. Four near-duplicate candidate pairs within test remain an independence caveat. Flagged test images were viewed only for targeted leakage adjudication, not for exploratory analysis or model selection. Test scoring occurred only after the five-candidate validation selection was frozen and committed.
+
+## Literature synthesis and methodological choices
+
+The reviewed literature supports a deliberate progression in representation
+capacity, rather than a collection of unrelated classifiers:
+
+- **Handcrafted gradients:** Dalal and Triggs' HOG [1] summarizes
+  contrast-normalized local edge directions, offering spatial information
+  without pretrained weights. The source paper addresses human detection, so
+  its published metrics are not benchmark results for these scenes.
+- **Local descriptors and quantization:** Lowe's SIFT [2] detects local
+  keypoints; Csurka et al. [3] make variable-length descriptor sets comparable
+  through visual-word histograms. This introduces vocabulary learning and can
+  discard spatial arrangement; it is a useful contrast with structured HOG.
+- **Learned representations and transfer:** residual networks [4] address
+  optimization of deeper CNNs. Studies of ImageNet transfer [7] motivate
+  comparing frozen features with fine-tuning, rather than assuming that
+  fine-tuning always wins on a new domain.
+- **Qualitative explanation:** Grad-CAM [5] localizes features relevant to
+  one class logit, but does not provide a validated causal account of a
+  prediction. Correct visual alignment with the actual model input is essential.
+
+These sources motivate the representations and experiment design. They do not
+supply any numerical Intel-scene results in the tables below. For full
+author, venue, method and limitation notes see
+[`LITERATURE_REVIEW.md`](LITERATURE_REVIEW.md).
+
+## Implemented pipeline, preprocessing and tuning
+
+1. **Data:** original images are left unchanged; a locked reviewed manifest
+   partitions the original labeled training set into train and validation,
+   while preserving the source test split for the final winner only. Label
+   order and image-content hashes are checked. The pHash ledger removes
+   reviewed cross-split leakage candidates but cannot prove universal
+   independence.
+2. **HOG/classical:** grayscale images are resized to 128 × 128. The default
+   OpenCV HOG uses nine orientation bins, 16 × 16-pixel cells and 2 × 2-cell
+   blocks, producing 1,764 features. The classifier pipeline fits
+   `StandardScaler` on training data and searches Logistic Regression and
+   LinearSVC regularization (`C`). The committed winning HOG comparator uses
+   Logistic Regression with `C=0.01`.
+3. **SIFT–BoVW/classical:** grayscale 128 × 128 images yield SIFT
+   descriptors. MiniBatchKMeans learns visual-word centers from *training
+   descriptors only*, then L2-normalized histograms represent images.
+   Vocabulary size and classifier/`C` are validation-tuned; images with
+   zero keypoints have zero histograms. The selected comparator uses
+   128 words and Logistic Regression with `C=1`.
+4. **Frozen deep/hybrid:** torchvision's ImageNet-pretrained ResNet18 and its
+   weight-specific inference transform produce 512-dimensional image
+   embeddings. A training-fitted scaler and a validation-tuned linear
+   classifier complete the pipeline. The best recorded variant is
+   LinearSVC with `C=0.1`.
+5. **CNN head training/fine-tuning:** both variants use ImageNet ResNet18,
+   a six-class linear head, cross-entropy loss and AdamW. Training uses
+   random resized crops, horizontal flips, small rotations, and color
+   jitter; validation uses the deterministic weight-specific 256-resize /
+   224-center-crop and ImageNet normalization. In the head-only model the
+   backbone is frozen; in the fine-tuned model `layer4` is also trainable,
+   with a smaller learning rate than the classification head. Checkpoints
+   and early stopping are selected on validation macro-F1.
+6. **Evaluation:** each comparator's ranking is determined solely from
+   validation. Only the frozen winner is loaded for one test evaluation.
+   The output includes classwise precision, recall, F1, support, confusion
+   counts and inference timing. All other test scores remain **NOT RUN**.
+
+The source CLIs expose classical `C` values of 0.01, 0.1, 1 and 10 by
+default, BoVW vocabulary sizes 64, 128 and 256 by default, and configuration
+files in each local `runs/` directory record the *actual* settings.
+Those defaults are not a claim that every possible grid point finished on
+the server; consult the local run records for exact search coverage.
+The CNN command documentation records a five-epoch maximum and
+validation-based early stopping for the reference runs. The small
+from-scratch CNN is optional and **NOT RUN**; it is not required for the
+reported comparison.
 
 ## Validation comparison and frozen selection
 
@@ -38,6 +141,49 @@ ResNet uses residual learning; the cited paper motivates the architecture family
 <!-- END GENERATED VALIDATION TABLE -->
 
 The frozen selection record is `configs/final-selection-seed-42-phash-reviewed.json` (SHA-256 `aad84528377fd219e1cc6223cce107186b8b907e69bda6c4094a13416e31050b`). Its rule is highest validation macro-F1, with ascending `run_id` as the tie-breaker. The majority-class row is a validation-only reference, not a sixth candidate; its test score remains `NOT RUN`. The selected checkpoint is `runs/seed-42-phash-reviewed/cnn18/layer4-imagenet-v1/best_checkpoint.pt` (SHA-256 `84fd9791276833d6dd8a5a6d1e17c1d89cc41eab8922002774c309a6ffbfd019`). Only the selected CNN was evaluated on test; test results for the other candidates do not exist.
+
+## Interpretation of the validation comparison
+
+On this *single fixed validation split*, the ranking is clear:
+SIFT–BoVW (0.592861), HOG (0.676893), frozen ResNet embeddings
+(0.903315), pretrained ResNet head training (0.908711), and layer4
+fine-tuning (0.929137). A majority-class reference scored 0.050619.
+Frozen deep features already exceed both handcrafted methods, consistent
+with H1. This is evidence that pretrained transferable representations are
+useful for this dataset, not proof that every ResNet beats every handcrafted
+method or that every hyperparameter search received equal compute.
+
+**HOG versus SIFT–BoVW:** HOG's higher validation score is compatible with
+the idea that a spatial gradient grid retains scene-layout cues lost by
+an unordered visual-word histogram. However, differences in extraction,
+vocabulary capacity and tuning also exist. No controlled ablation isolates
+the cause.
+
+**Frozen versus trained ResNet:** head training (0.908711) only modestly
+exceeds frozen embeddings with a linear SVM (0.903315); layer4
+fine-tuning (0.929137) exceeds both on this validation run. These are
+different learning procedures with different optimization costs, so the
+difference cannot be attributed exclusively to unfreezing layer4.
+There are no repeated seeds or confidence intervals establishing how
+stable the ranking would be under new splits.
+
+**Compute trade-offs:** handcrafted features avoid pretrained network
+weights; SIFT requires descriptor extraction and vocabulary fitting;
+frozen ResNet needs inference plus a lightweight classifier; fine-tuning
+adds backpropagation, activation memory and optimizer state. These are
+methodological costs, not measured head-to-head speed rankings: the
+committed report does not provide comparable end-to-end wall times,
+energy or peak memory across all candidates. The final selected model's
+inference time below is hardware- and batch-specific and must not be
+presented as evidence that it is faster than the other approaches.
+
+**Final error analysis:** the most common off-diagonal categories below
+include glacier→mountain and mountain→glacier, plus street→buildings
+and buildings→street. Their shared visual structures are plausible
+hypotheses, not demonstrated mechanisms. Forest has the strongest final
+per-class F1; glacier has the weakest recall. Because only the winning
+model was evaluated on test, these are **not** test-set comparisons with
+other methods, and the frozen model must not be retuned from these errors.
 
 ## Final test results
 
@@ -105,6 +251,32 @@ No test-image examples or image-bearing saliency figures are included here. Grad
 4. Dataset-specific reuse terms and underlying image rights remain unverified. The archive, source images, and image-bearing figures remain local; this report contains aggregate metrics only.
 5. Earlier notebook and legacy `report.pdf` numbers are historical and superseded; they were not reproduced as current results. See `docs/EXPERIMENT_STATUS.md` and `docs/PHASE1_DATA_AUDIT.md` for the detailed audit trail.
 
+## Qualitative explanation integrity
+
+The training pipeline saves Grad-CAM overlays of a predefined sequence of
+validation mistakes and then correct validation examples. The overlay
+implementation was corrected in the reviewer pass to invert the *same*
+normalized, resized, center-cropped tensor presented to the model rather
+than stretching the original image to 224 × 224. This change affects
+**future** generated overlays only. Existing saved overlays from the
+earlier implementation should not be treated as spatially validated;
+regenerate validation-only figures from an existing checkpoint after
+running the new alignment regression test. Do not rerun the held-out
+test evaluator or select a different model based on these visualizations.
+
+## Scope of independent verification
+
+Source code, tracked selection metadata, saved numerical summaries, test
+definitions and disclosure statements are inspectable in the GitHub
+repository. Raw images, resolved local run metrics, prediction CSVs,
+trained checkpoint and Ubuntu execution logs are not accessible through
+this GitHub-only review. Consequently, code fixes and static review do
+not constitute an independent rerun or independent verification of the
+quoted 0.931004 test macro-F1. The local evidence and SHA-256s listed
+above must be checked by an Ubuntu operator before final academic
+sign-off. Review instructions and outstanding gates are in
+[`FINAL_REVIEW_2026-10-08.md`](FINAL_REVIEW_2026-10-08.md).
+
 ## Requirements compliance matrix
 
 | Requirement | Status | Evidence or limitation |
@@ -126,3 +298,4 @@ No test-image examples or image-bearing saliency figures are included here. Grad
 [4] https://openaccess.thecvf.com/content_cvpr_2016/html/He_Deep_Residual_Learning_CVPR_2016_paper.html — He et al., Deep Residual Learning for Image Recognition (CVPR 2016)
 [5] https://openaccess.thecvf.com/content_iccv_2017/html/Selvaraju_Grad-CAM_Visual_Explanations_ICCV_2017_paper.html — Selvaraju et al., Grad-CAM (ICCV 2017)
 [6] https://www.kaggle.com/puneet6060/intel-image-classification/metadata — Kaggle dataset metadata: Intel Image Classification
+[7] https://openaccess.thecvf.com/content_CVPR_2019/html/Kornblith_Do_Better_ImageNet_Models_Transfer_Better_CVPR_2019_paper.html — Kornblith, Shlens and Le, Do Better ImageNet Models Transfer Better? (CVPR 2019)
