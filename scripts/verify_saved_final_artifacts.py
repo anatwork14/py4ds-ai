@@ -54,6 +54,7 @@ def verify_saved_artifacts(
     errors_path: Path,
     guard_path: Path,
     *,
+    manifest_path: Path | None = None,
     expected_metrics_sha256: str | None = None,
     expected_predictions_sha256: str | None = None,
 ) -> dict[str, Any]:
@@ -91,6 +92,28 @@ def verify_saved_artifacts(
     predictions = _read_csv(predictions_path, REQUIRED_PREDICTION_FIELDS)
     if not predictions:
         raise ValueError("Saved prediction CSV is empty")
+    if manifest_path is not None:
+        if _sha256(manifest_path) != selection.get("manifest_sha256"):
+            raise ValueError("Locked split manifest SHA-256 differs from frozen selection")
+        manifest_rows = _read_csv(
+            manifest_path,
+            {"sample_id", "class_name", "assigned_split", "source_split", "audit_status"},
+        )
+        test_rows = [row for row in manifest_rows if row["assigned_split"] == "test"]
+        if len(test_rows) != len(predictions):
+            raise ValueError("Locked manifest test count differs from saved predictions")
+        for manifest_row, prediction_row in zip(test_rows, predictions, strict=True):
+            if manifest_row["source_split"] != "seg_test" or (
+                manifest_row["audit_status"] != "ok"
+            ):
+                raise ValueError("Locked manifest has an invalid test source/audit status")
+            if (
+                manifest_row["sample_id"] != prediction_row["sample_id"]
+                or manifest_row["class_name"] != prediction_row["true_name"]
+            ):
+                raise ValueError(
+                    "Saved prediction IDs, order or true labels differ from locked manifest"
+                )
     matrix = [[0] * len(CLASS_NAMES) for _ in CLASS_NAMES]
     name_to_index = {name: index for index, name in enumerate(CLASS_NAMES)}
     seen_ids: set[str] = set()
@@ -198,6 +221,10 @@ def main() -> None:
         default=Path("runs/seed-42-phash-reviewed/final-evaluation/test_errors.csv"),
     )
     parser.add_argument("--guard", type=Path, default=None)
+    parser.add_argument(
+        "--manifest", type=Path, default=None,
+        help="Locked split manifest (defaults to the path in the frozen selection)",
+    )
     parser.add_argument("--expected-metrics-sha256", type=str, default=None)
     parser.add_argument("--expected-predictions-sha256", type=str, default=None)
     args = parser.parse_args()
@@ -212,9 +239,11 @@ def main() -> None:
         resolve(args.guard) if args.guard is not None
         else root / "runs/.test_evaluation_locks" / f"{selection['manifest_sha256']}.json"
     )
+    manifest_relative = args.manifest or Path(selection["manifest_path"])
     result = verify_saved_artifacts(
         selection_path, resolve(args.metrics), resolve(args.predictions),
         resolve(args.errors), guard_path,
+        manifest_path=resolve(manifest_relative),
         expected_metrics_sha256=args.expected_metrics_sha256,
         expected_predictions_sha256=args.expected_predictions_sha256,
     )
