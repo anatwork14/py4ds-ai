@@ -77,3 +77,17 @@ To regenerate the report's summary and metric tables from the local frozen selec
 ```bash
 uv run --locked --extra dev python scripts/render_report.py
 ```
+
+For the independent, **read-only** audit of the already-saved held-out
+predictions (no image loading or model inference), run:
+
+```bash
+uv run --locked --extra dev python scripts/verify_saved_final_artifacts.py \
+  --expected-metrics-sha256 4df9443c7ad28c9ddd36cc461d38f5f7ed1a0b43b819d2ea0e400dedf9b4967e \
+  --expected-predictions-sha256 85d68f7fac4351716964ec0db773126805ac530c269ed37c607af8cae0486dde
+```
+
+See [the final academic reviewer gate](docs/FINAL_REVIEW_2026-10-08.md)
+for the full Ubuntu acceptance checklist. These commands must not be confused
+with a repeat of `py4ds-evaluate-final`, which remains prohibited for this
+sealed test manifest.
