@@ -72,6 +72,9 @@ uv lock --check --python 3.12.14
 uv run --locked --extra dev ruff check src tests scripts
 uv run --locked --extra dev pytest -q
 uv run --locked --extra dev python scripts/render_report.py
+uv run --locked --extra dev python scripts/verify_saved_final_artifacts.py \
+  --expected-metrics-sha256 4df9443c7ad28c9ddd36cc461d38f5f7ed1a0b43b819d2ea0e400dedf9b4967e \
+  --expected-predictions-sha256 85d68f7fac4351716964ec0db773126805ac530c269ed37c607af8cae0486dde
 ```
 
 **Interpretation:** all commands must exit zero. Fix code/test failures on the
