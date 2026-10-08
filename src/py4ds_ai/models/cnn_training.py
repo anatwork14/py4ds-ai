@@ -282,6 +282,24 @@ def _save_confusion_matrix(metrics: dict, output_path: Path, title: str) -> None
     plt.close(figure)
 
 
+def _gradcam_overlay_base(tensor: torch.Tensor) -> np.ndarray:
+    """Invert validation normalization so the overlay matches the exact model crop.
+
+    Resizing the original image directly to 224x224 would misalign Grad-CAM with
+    the 256-short-side resize and 224 center crop used for validation inference.
+    """
+    if tensor.ndim != 3 or tensor.shape[0] != 3:
+        raise ValueError("Grad-CAM overlay requires a normalized RGB CHW tensor")
+    preprocessing = ResNet18_Weights.IMAGENET1K_V1.transforms()
+    mean = np.asarray(preprocessing.mean, dtype=np.float32)
+    std = np.asarray(preprocessing.std, dtype=np.float32)
+    normalized = tensor.detach().to(device="cpu", dtype=torch.float32).permute(1, 2, 0).numpy()
+    base = np.clip(normalized * std + mean, 0.0, 1.0)
+    if not np.isfinite(base).all():
+        raise ValueError("Grad-CAM overlay source contains non-finite pixels")
+    return base
+
+
 def _save_gradcam_examples(
     model: nn.Module,
     rows: Sequence[ImageRow],
@@ -311,12 +329,13 @@ def _save_gradcam_examples(
     for index in selected:
         row = rows[index]
         with Image.open(row.path) as image:
-            original = image.convert("RGB").resize((224, 224), Image.Resampling.BILINEAR)
             tensor = transform(image.convert("RGB"))
         predicted = int(predictions[index])
         heatmap = gradcam_heatmap(model, tensor, target_class=predicted, device=str(device))
+        base = _gradcam_overlay_base(tensor)
+        if heatmap.shape != base.shape[:2]:
+            raise ValueError("Grad-CAM map size does not match its model input crop")
         color = plt.get_cmap("jet")(heatmap)[..., :3]
-        base = np.asarray(original, dtype=np.float32) / 255.0
         overlay = np.clip(0.55 * base + 0.45 * color, 0.0, 1.0)
         filename = f"{index:04d}-{row.class_name}-pred-{CLASS_NAMES[predicted]}.png"
         Image.fromarray(np.uint8(np.round(overlay * 255.0))).save(destination / filename)
