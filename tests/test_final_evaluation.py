@@ -162,6 +162,35 @@ def test_final_evaluation_reads_only_test_and_seals_second_attempt(tmp_path: Pat
         )
 
 
+def test_final_evaluation_does_not_follow_predictable_guard_temp_symlink(
+    tmp_path: Path,
+) -> None:
+    project_root = tmp_path / "project"
+    manifest, manifest_hash = _write_bundle(tmp_path)
+    selection = _write_selection(project_root, manifest_hash)
+    guard_dir = project_root / "runs" / ".test_evaluation_locks"
+    guard_dir.mkdir(parents=True)
+    protected = tmp_path / "protected.json"
+    protected.write_text("preserve this file", encoding="utf-8")
+    predictable_temp = guard_dir / f"{manifest_hash}.tmp"
+    predictable_temp.symlink_to(protected)
+
+    result = evaluate_final(
+        selection,
+        manifest,
+        project_root / "runs" / "final-test-safe-guard",
+        project_root=project_root,
+        device="cpu",
+        batch_size=3,
+        num_workers=0,
+    )
+
+    assert result["test_status"] == "SCORED ONCE"
+    assert protected.read_text(encoding="utf-8") == "preserve this file"
+    guard = json.loads((guard_dir / f"{manifest_hash}.json").read_text(encoding="utf-8"))
+    assert guard["state"] == "COMPLETED"
+
+
 def test_wrong_checkpoint_class_order_is_rejected_before_test_access(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:

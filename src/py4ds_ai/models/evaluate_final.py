@@ -165,6 +165,28 @@ def _write_predictions(
             writer.writerow(record)
 
 
+def _write_guard_record(path: Path, record: dict[str, Any]) -> None:
+    """Atomically update the evaluation guard without following a predictable temp symlink."""
+    temporary_path: Path | None = None
+    try:
+        with tempfile.NamedTemporaryFile(
+            mode="w",
+            encoding="utf-8",
+            dir=path.parent,
+            prefix=f".{path.name}.",
+            suffix=".tmp",
+            delete=False,
+        ) as temporary:
+            temporary_path = Path(temporary.name)
+            json.dump(record, temporary, indent=2, sort_keys=True)
+            temporary.write("\n")
+        os.replace(temporary_path, path)
+        temporary_path = None
+    finally:
+        if temporary_path is not None:
+            temporary_path.unlink(missing_ok=True)
+
+
 def evaluate_final(
     selection_path: str | Path,
     manifest_path: str | Path,
@@ -393,20 +415,12 @@ def evaluate_final(
         os.replace(staging, target)
         guard_record["state"] = "COMPLETED"
         guard_record["completed_at_utc"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
-        temporary_guard = guard_path.with_suffix(".tmp")
-        temporary_guard.write_text(
-            json.dumps(guard_record, indent=2, sort_keys=True) + "\n", encoding="utf-8"
-        )
-        os.replace(temporary_guard, guard_path)
+        _write_guard_record(guard_path, guard_record)
     except Exception as exc:
         shutil.rmtree(staging, ignore_errors=True)
         guard_record["state"] = "INCOMPLETE_TEST_ATTEMPT"
         guard_record["error_type"] = type(exc).__name__
-        temporary_guard = guard_path.with_suffix(".tmp")
-        temporary_guard.write_text(
-            json.dumps(guard_record, indent=2, sort_keys=True) + "\n", encoding="utf-8"
-        )
-        os.replace(temporary_guard, guard_path)
+        _write_guard_record(guard_path, guard_record)
         raise
 
     return {
