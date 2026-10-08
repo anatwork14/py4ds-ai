@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import csv
+import hashlib
 import importlib
 import json
 import sys
@@ -133,4 +134,58 @@ def test_saved_evidence_rejects_wrong_recorded_sha256(tmp_path: Path) -> None:
         verify_module.verify_saved_artifacts(
             *paths,
             expected_predictions_sha256="0" * 64,
+        )
+
+
+def test_manifest_audit_checks_saved_prediction_id_order_and_truth(tmp_path: Path) -> None:
+    paths = _fixture(tmp_path)
+    manifest_path = tmp_path / "split_manifest.csv"
+    predicted = verify_module._read_csv(
+        paths[2], verify_module.REQUIRED_PREDICTION_FIELDS
+    )
+    fieldnames = ["sample_id", "class_name", "assigned_split", "source_split", "audit_status"]
+    with manifest_path.open("w", newline="", encoding="utf-8") as handle:
+        writer = csv.DictWriter(handle, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerows(
+            {
+                "sample_id": row["sample_id"],
+                "class_name": row["true_name"],
+                "assigned_split": "test",
+                "source_split": "seg_test",
+                "audit_status": "ok",
+            }
+            for row in predicted
+        )
+    digest = hashlib.sha256(manifest_path.read_bytes()).hexdigest()
+    selection = json.loads(paths[0].read_text(encoding="utf-8"))
+    selection["manifest_sha256"] = digest
+    paths[0].write_text(json.dumps(selection), encoding="utf-8")
+    metrics = json.loads(paths[1].read_text(encoding="utf-8"))
+    metrics["manifest_sha256"] = digest
+    paths[1].write_text(json.dumps(metrics), encoding="utf-8")
+    guard = tmp_path / f"{digest}.json"
+    paths[4].rename(guard)
+    audited_paths = (*paths[:4], guard)
+
+    result = verify_module.verify_saved_artifacts(
+        *audited_paths, manifest_path=manifest_path
+    )
+    assert result["test_count"] == 6
+
+    # A valid manifest hash must not hide swapped row order.
+    lines = manifest_path.read_text(encoding="utf-8").splitlines()
+    lines[1], lines[2] = lines[2], lines[1]
+    manifest_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    updated_digest = hashlib.sha256(manifest_path.read_bytes()).hexdigest()
+    selection["manifest_sha256"] = updated_digest
+    metrics["manifest_sha256"] = updated_digest
+    paths[0].write_text(json.dumps(selection), encoding="utf-8")
+    paths[1].write_text(json.dumps(metrics), encoding="utf-8")
+    updated_guard = tmp_path / f"{updated_digest}.json"
+    guard.rename(updated_guard)
+
+    with pytest.raises(ValueError, match="IDs, order or true labels"):
+        verify_module.verify_saved_artifacts(
+            *paths[:4], updated_guard, manifest_path=manifest_path
         )
