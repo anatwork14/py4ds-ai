@@ -1,6 +1,6 @@
 # Phase 1 — Dataset acquisition and audit
 
-Status: **real dataset acquired, extracted, and audited; manifest locked.** This document covers data preparation; the later model-run results and open evaluation work are tracked in [`EXPERIMENT_STATUS.md`](EXPERIMENT_STATUS.md).
+Status: **real dataset acquired, extracted, and audited; manifest locked.** This document covers data preparation; completed model runs and the one-time final evaluation are recorded in [`EXPERIMENT_STATUS.md`](EXPERIMENT_STATUS.md) and [`FINAL_REPORT.md`](FINAL_REPORT.md).
 
 ## Provenance
 
@@ -83,9 +83,9 @@ Commands verified at the initial Phase 1 implementation checkpoint:
 
 The latest combined project verification after adding HOG, BoVW, and ResNet18 embedding support is recorded in `docs/EXPERIMENT_STATUS.md`; it passed Ruff and **40 tests** before CNN-training work began.
 
-## Still open
+## Remaining caveats
 
 1. Review the Kaggle dataset terms; the CLI license label alone is not a legal assessment.
-2. Report the four retained test–test near-duplicate candidates as a non-independence limitation in the final evaluation; do not remove or retune against test rows.
+2. Four retained test–test near-duplicate candidates are reported as an independence limitation in `FINAL_REPORT.md`; do not remove them or retune against test rows.
 3. The original seed-42 preparation was repeated successfully before this targeted review; the reviewed manifest is a deterministic derived lock whose source fingerprint matches the original dataset fingerprint.
-The five validation experiments on `data/manifests/seed-42-phash-reviewed/split_manifest.csv` and validation-only selection are complete; pre-review runs remain superseded. Current results and selection are recorded in [`EXPERIMENT_STATUS.md`](EXPERIMENT_STATUS.md). Remaining gates are independent review and verification of the five-candidate inventory, manifest hash, and selected-checkpoint digest; committing the reviewed code and selection record; then running the held-out test once and completing the final report. See `EXPERIMENT_STATUS.md` for the current status.
+The five validation experiments, validation-only selection, one-time held-out evaluation, and source-grounded final report are complete. Earlier pre-review runs remain superseded. Training run metadata records a dirty worktree at launch, so the exact historical training source tree is not fully identified by the recorded commit alone; see `EXPERIMENT_STATUS.md` and `FINAL_REPORT.md`. Dataset reuse rights remain unverified; keep source images and image-bearing artifacts local.

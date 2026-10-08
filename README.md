@@ -70,4 +70,10 @@ Then safely extract the downloaded ZIP using `extract_archive_safely` (see the r
 
 Follow [`AGENTS.md`](AGENTS.md), [`docs/IMPLEMENTATION_PLAN.md`](docs/IMPLEMENTATION_PLAN.md), and [`docs/LITERATURE_REVIEW.md`](docs/LITERATURE_REVIEW.md). Each experiment must save its resolved configuration, split hash, predictions, metrics, plots, and environment provenance. Hyperparameter and checkpoint selection must use train/validation only; final test evaluation occurs only after selection is frozen.
 
-**Status:** repository and data audits are recorded. Earlier HOG, SIFT-BoVW, frozen ResNet18, and CNN runs used the pre-review manifest and are superseded. All five clean-manifest runs are complete; validation-only selection is frozen in `configs/final-selection-seed-42-phash-reviewed.json` and selects the layer4-fine-tuned ResNet18 CNN (validation macro-F1 0.929137). The reviewed manifest SHA-256 is `27c17f497e89a8f3b72975b45fcd1e44038e63edddbd4e721437a9a3500c982e`. Test evaluation remains NOT RUN; no final research report is available. Historical notebook/report scores are not current measurements.
+**Status:** repository and data audits are recorded. Earlier HOG, SIFT-BoVW, frozen ResNet18, and CNN runs used the pre-review manifest and are superseded. All five clean-manifest runs are complete; validation-only selection chose the layer4-fine-tuned ResNet18 CNN (validation macro-F1 0.929137). Its one-time held-out evaluation achieved 0.930000 accuracy and 0.931004 macro-F1 on 3,000 test rows. The source-grounded results and caveats are in [`docs/FINAL_REPORT.md`](docs/FINAL_REPORT.md); the saved test artifacts remain local. Historical notebook/report scores are not current measurements.
+
+To regenerate the report's summary and metric tables from the local frozen selection and run artifacts (without evaluating test again):
+
+```bash
+uv run --locked --extra dev python scripts/render_report.py
+```

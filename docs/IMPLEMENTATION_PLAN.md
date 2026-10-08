@@ -91,15 +91,15 @@ The tested modules, not notebook cell side effects, must implement each step. Th
 
 ### Stage 5 — Final selection, evaluation and reporting
 
-**Input:** frozen selected configs/checkpoints, original locked test manifest. **Output:** run-scoped final metrics, prediction CSVs, tables, confusion matrices, sample explanation plots, report.
+**Input:** frozen selected config/checkpoint, original locked test manifest. **Output:** one run-scoped final evaluation for the selected model, prediction CSV, metrics, confusion matrices and report. Unselected models retain `NOT RUN` test status.
 
 - Before any final test, write selected_models.json with config IDs, validation scores, checkpoints and hashes. No tuning after seeing test.
-- Evaluate each **predeclared comparator** on the same held-out set once, no per-model cherry-picked cleaning/split.
-- Generate: raw and normalized six-by-six confusion matrices, accuracy, macro/weighted F1, per-class precision/recall/F1/support, train time, measured inference time with stated batch/device and optional confidence intervals.
+- For this project, evaluate the frozen validation winner once; preserve `NOT RUN` test status for the other candidates and the majority baseline. Do not use the final test to compare or select models.
+- Generate for the selected model: raw and normalized six-by-six confusion matrices, accuracy, macro/weighted F1, per-class precision/recall/F1/support, parameter counts and measured inference time with stated batch/device. Disclose that no multi-seed confidence interval was run.
 - Label scores by split and experiment ID. If CSV results have missing fields or some models did not run, render NOT RUN; never fill a table with guesses.
 - Discuss strongest/weakest class, likely visual overlaps, efficiency/accuracy trade-offs, domain shift, limitations of this single benchmark, and the cost of feature engineering vs learned representations.
 - Test Grad-CAM for valid output shape/finite values; explain illustrative rather than causal guarantees.
-- Quality gate: regenerating tables from saved predictions returns the same values as metrics JSON, to a stated precision.
+- Quality gate: `scripts/render_report.py` regenerates result tables from the frozen selection and saved metrics; validation scores, confusion-matrix totals, accuracy, per-class supports and one-time test state are checked before writing.
 
 ### Stage 6 — Literature and delivery
 
@@ -122,7 +122,7 @@ Each run must save:
 
 ## Current and planned execution CLIs
 
-All core preparation, classical, frozen-embedding, CNN-training, validation-selection, and final-evaluation CLIs are implemented. All five clean-manifest runs are complete and validation-only selection is frozen in `configs/final-selection-seed-42-phash-reviewed.json` (layer4-fine-tuned ResNet18; validation macro-F1 0.929137). Test evaluation remains NOT RUN. Next gates: independent review, commit code and selection, run the held-out test exactly once, complete the report, and submit reviewable phase-based PRs.
+All core preparation, classical, frozen-embedding, CNN-training, validation-selection, final-evaluation, and report-rendering CLIs are implemented. Five reviewed-manifest validation candidates and the validation-only selection are complete. The selected layer4-fine-tuned ResNet18 was evaluated once; the report and status document record its test results. Do not rerun the evaluator for this manifest. Remaining delivery gates are to commit/push the documentation and renderer, inspect remote PR/CI state, and retain the unresolved dataset-rights caveat.
 
 ```bash
 uv run --locked --extra dev py4ds-prepare \
@@ -166,7 +166,8 @@ uv run --locked --extra dev py4ds-freeze-selection \
   --manifest data/manifests/seed-42-phash-reviewed/split_manifest.csv \
   --output configs/final-selection-seed-42-phash-reviewed.json
 
-# Run exactly once after the selection record is verified and committed:
+# Historical one-time evaluation command; guard is COMPLETED for this manifest.
+# Do not rerun it for this project.
 uv run --locked --extra dev py4ds-evaluate-final \
   --project-root . \
   --selection configs/final-selection-seed-42-phash-reviewed.json \
@@ -175,7 +176,7 @@ uv run --locked --extra dev py4ds-evaluate-final \
   --device cuda:0 --batch-size 64 --num-workers 4
 ```
 
-CNN training, validation selection, and final-evaluation CLIs are implemented and their help has been verified. The commands above define the current reviewed-manifest protocol; report rendering remains pending, and the test command must remain blocked until the selection record is frozen, verified, and committed.
+CNN training, validation selection, final evaluation, and report-rendering CLIs are implemented. The final test guard is already `COMPLETED`; report output is generated from local metrics and selection artifacts. The documented final-evaluation command is included for provenance only and must not be rerun against this manifest.
 
 ## Test inventory (examples of executable assertions)
 

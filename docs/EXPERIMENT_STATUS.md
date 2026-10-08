@@ -2,23 +2,34 @@
 
 **Current comparison protocol:** `data/manifests/seed-42-phash-reviewed/split_manifest.csv`, SHA-256 `27c17f497e89a8f3b72975b45fcd1e44038e63edddbd4e721437a9a3500c982e`. It contains 11,868 train, 2,100 validation, and 3,000 test rows in fixed alphabetical class order. The 52-pair review ledger excluded 43 train/validation rows, preserved every test row, and left zero active cross-split pHash candidates; four test–test near-duplicate candidates remain. See [`PHASE1_DATA_AUDIT.md`](PHASE1_DATA_AUDIT.md).
 
-**Important:** The validation scores in the historical table below were produced with the earlier, pre-review manifest (`ff407ae...`) and are superseded. They must not be used as the clean-protocol comparison or to select the final model. All five planned clean-manifest runs have now completed. Test images were viewed only in targeted pHash leakage adjudication; they have not been used for feature/model selection or scored.
+**Important:** The validation scores in the historical table below were produced with the earlier, pre-review manifest (`ff407ae...`) and are superseded. They must not be used as the clean-protocol comparison or to select the final model. All five planned clean-manifest runs have completed. The selected model was evaluated on the held-out test once after selection and code were committed. Test images were viewed before that only in targeted pHash leakage adjudication, not for exploratory analysis or model selection.
 
-## Reviewed-manifest validation runs (test NOT RUN)
+## Reviewed-manifest validation runs
 
 | Experiment | Selected candidate/checkpoint | Validation macro-F1 | Saved result |
 |---|---|---:|---|
+| Majority-class baseline (validation reference only) | training-majority label `mountain` | 0.050619 | `runs/seed-42-phash-reviewed/classical/hog/metrics.json` |
 | HOG + linear classifiers | `hog-logistic_regression-C0.01` | 0.676893 | `runs/seed-42-phash-reviewed/classical/hog/metrics.json` |
 | SIFT-BoVW + linear classifiers | `sift-bovw-128-logistic_regression-C1` | 0.592861 | `runs/seed-42-phash-reviewed/classical/sift-bovw/metrics.json` |
 | Frozen ResNet18 embeddings + linear classifiers | `resnet18-hybrid-linear_svc-C0.1` | 0.903315 | `runs/seed-42-phash-reviewed/resnet18/imagenet-v1/metrics.json` |
 | Pretrained ResNet18, frozen head | best epoch 4/5 | 0.908711 | `runs/seed-42-phash-reviewed/cnn18/head-imagenet-v1/metrics.json` |
 | Pretrained ResNet18, layer4 fine-tuned | best epoch 5/5 | 0.929137 | `runs/seed-42-phash-reviewed/cnn18/layer4-imagenet-v1/metrics.json` |
 
-All five runs used the same reviewed manifest SHA-256 `27c17f497e89a8f3b72975b45fcd1e44038e63edddbd4e721437a9a3500c982e`; each reports `test_status: NOT RUN`. These are validation-selection results, not estimates of held-out test performance. No `predictions_test.csv` exists under the clean-run directory.
+All five runs used the same reviewed manifest SHA-256 `27c17f497e89a8f3b72975b45fcd1e44038e63edddbd4e721437a9a3500c982e`; the candidate run artifacts themselves report `test_status: NOT RUN`. Only the frozen winner was subsequently evaluated on test. The other four candidates have no test predictions or metrics.
 
-## Frozen validation-only selection (test NOT RUN)
+The majority-class reference is recorded inside the HOG metrics artifact, uses the training-majority class, and is not a sixth selection candidate. Its test score was not computed.
 
-`configs/final-selection-seed-42-phash-reviewed.json` records five candidates and selects the layer4-fine-tuned ResNet18 CNN by the declared highest-validation-macro-F1 rule. The selected checkpoint is `runs/seed-42-phash-reviewed/cnn18/layer4-imagenet-v1/best_checkpoint.pt`, SHA-256 `84fd9791276833d6dd8a5a6d1e17c1d89cc41eab8922002774c309a6ffbfd019`; validation accuracy is 0.928095 and macro-F1 is 0.929137. The selection record and code are not committed yet. The test evaluator has not been invoked.
+## Frozen validation-only selection
+
+`configs/final-selection-seed-42-phash-reviewed.json` records five candidates and selects the layer4-fine-tuned ResNet18 CNN by the declared highest-validation-macro-F1 rule. The selected checkpoint is `runs/seed-42-phash-reviewed/cnn18/layer4-imagenet-v1/best_checkpoint.pt`, SHA-256 `84fd9791276833d6dd8a5a6d1e17c1d89cc41eab8922002774c309a6ffbfd019`; validation accuracy is 0.928095 and macro-F1 is 0.929137. The selection and implementation were committed before final test access.
+
+## Final held-out test evaluation (SCORED ONCE)
+
+- Selected model: `resnet18-cnn-layer4`; test count: 3,000; accuracy: 0.930000; macro-F1: 0.931004; weighted-F1: 0.929743; error rows: 210.
+- Evaluator code commit: `5303a1078a54119c51445fd0e1e12feb4c1167e4`; device: NVIDIA GeForce GTX 1080 Ti (`cuda:0`); evaluation time: 2.088 seconds.
+- Guard record at `runs/.test_evaluation_locks/27c17f497e89a8f3b72975b45fcd1e44038e63edddbd4e721437a9a3500c982e.json` is `COMPLETED`; the metrics artifact records `test_evaluations: 1` and `test_status: SCORED ONCE`.
+- Saved predictions, error rows, metrics, and confusion matrix are local under `runs/seed-42-phash-reviewed/final-evaluation/`. Metrics SHA-256: `4df9443c7ad28c9ddd36cc461d38f5f7ed1a0b43b819d2ea0e400dedf9b4967e`.
+- Full class-level results, interpretation, and limitations are in [`FINAL_REPORT.md`](FINAL_REPORT.md).
 
 ## Superseded protocol (pre-review manifest)
 
@@ -72,11 +83,11 @@ The commands refuse to overwrite an existing run directory. Choose a new `--outp
 
 ## Important reproducibility caveat
 
-The run metadata records source commit `11334744c8634bc5a593e69fa271dc69bb626fd4` and `git_worktree_dirty: true`. The experiment code was not committed when these runs were launched. The saved files and settings are real, but the recorded Git commit alone does not identify the exact run code until the Phase 1–3 changes are committed and reviewed. Keep this caveat in any report.
+The run metadata records source commit `11334744c8634bc5a593e69fa271dc69bb626fd4` and `git_worktree_dirty: true`. The experiment code was not committed when those runs were launched. The implementation and final-evaluation guard are now committed and reviewed (up to `5303a1078a54119c51445fd0e1e12feb4c1167e4`), but the dirty-worktree flag still means the commit alone does not identify the exact historical training source tree. The saved configurations, metrics, checkpoint hashes, and predictions are the direct evidence for those runs.
 
-## Remaining work
+## Remaining work and caveats
 
-- Independently review the implementation and frozen selection file; verify the five-candidate inventory, manifest hash, and selected checkpoint digest, then commit the code and selection record.
-- Run the held-out test evaluator exactly once from that committed state. Preserve all 3,000 test rows and report the four within-test near-duplicate pairs as an independence limitation.
-- Generate test metrics, per-class/error analysis, comparison plots, and the source-verified final report from saved predictions. Keep dataset images and image-bearing figures local until reuse rights are confirmed.
-- Push reviewable phase-based PRs, check each PR's actual CI state, and report any remaining license or reproducibility caveats.
+- Push the reviewed commits to the existing implementation branch/PR and verify the remote PR and CI status.
+- Dataset-specific reuse terms remain unverified. Keep the archive, source images, and image-bearing figures local unless rights are confirmed.
+- Four retained test–test near-duplicate candidates limit the independence assumption; do not remove them or retune against test.
+- Training run metadata records commit `11334744c8634bc5a593e69fa271dc69bb626fd4` with a dirty worktree. The saved run artifacts are the direct evidence; that commit alone does not identify the exact training source tree.

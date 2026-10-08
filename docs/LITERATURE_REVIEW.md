@@ -1,6 +1,6 @@
 # Literature Review — Intel Natural Scene Classification
 
-**Status:** source-verified background and proposed experiments; **NOT** a report of models trained in this repository. Checked 2026-10-08 (UTC+07:00 local time). All model-result cells for the Intel dataset must be populated from actual experiments.
+**Status:** source-verified background; actual results from this repository are documented in [`FINAL_REPORT.md`](FINAL_REPORT.md) and [`EXPERIMENT_STATUS.md`](EXPERIMENT_STATUS.md). Checked 2026-10-08 (UTC+07:00 local time). Published paper results are not substituted for Intel dataset results.
 
 ## Research problem
 
@@ -63,19 +63,19 @@ A related and earlier vector-quantization / retrieval formulation is Sivic and Z
 
 These hypotheses may be rejected. Report unfavorable outcomes honestly.
 
-## Experimental matrix to fill ONLY from real runs
+## Project experiment outcomes from saved artifacts
 
 | Experiment ID | Representation | Learner | Tuned on | Intel validation macro-F1 | Intel test macro-F1 | Source artifact |
-|---|---|---|---|---|---|---|
-| E00 | none | majority classifier | n/a | NOT RUN | NOT RUN | — |
-| E01 | HOG | LinearSVC | train/val | NOT RUN | NOT RUN | — |
-| E02 | SIFT/BoVW | LinearSVC | train/val | NOT RUN | NOT RUN | — |
-| E03 | frozen ResNet18 | LogisticRegression / LinearSVC | train/val | NOT RUN | NOT RUN | — |
-| E04 | pretrained ResNet18 | trainable 6-class head | train/val | NOT RUN | NOT RUN | — |
-| E05 | pretrained ResNet18 | last block fine-tuned | train/val | NOT RUN | NOT RUN | — |
+|---|---|---|---|---:|---:|---|
+| E00 | none | training-majority class (`mountain`) | validation reference | 0.050619 | NOT RUN | `runs/seed-42-phash-reviewed/classical/hog/metrics.json` |
+| E01 | HOG | LogisticRegression, C=0.01 | train/val | 0.676893 | NOT RUN | `runs/seed-42-phash-reviewed/classical/hog/metrics.json` |
+| E02 | SIFT/BoVW, 128 words | LogisticRegression, C=1 | train/val | 0.592861 | NOT RUN | `runs/seed-42-phash-reviewed/classical/sift-bovw/metrics.json` |
+| E03 | frozen ResNet18 | LinearSVC, C=0.1 | train/val | 0.903315 | NOT RUN | `runs/seed-42-phash-reviewed/resnet18/imagenet-v1/metrics.json` |
+| E04 | pretrained ResNet18 | trainable 6-class head | train/val | 0.908711 | NOT RUN | `runs/seed-42-phash-reviewed/cnn18/head-imagenet-v1/metrics.json` |
+| E05 | pretrained ResNet18 | layer4 fine-tuned | train/val; test once after freeze | 0.929137 | 0.931004 | `runs/seed-42-phash-reviewed/final-evaluation/metrics.json` |
 | E06 optional | small CNN from scratch | end-to-end CNN | train/val | NOT RUN | NOT RUN | — |
 
-The comparison script must generate this table from versioned structured results, and must explicitly distinguish **validation** from **test** metrics. Do not manually convert the NOT RUN cells into estimates, copy scores from other repos, or optimize on the held-out test.
+Only E05 has a held-out test score because only the frozen winner was evaluated. The other test cells intentionally remain NOT RUN; do not infer or copy test scores for unselected candidates. The metrics and selected-checkpoint provenance are detailed in `FINAL_REPORT.md`.
 
 ## Protocol and source discipline
 
