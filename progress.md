@@ -53,3 +53,12 @@ Add a brief log line at each agent handoff and link the primary GitHub comment/I
 - **Final sign-off:** all tasks evidence-backed, all required Ubuntu commands pass at the final SHA, no active scientific/report blocker, and reviewer explicitly approves the ordered PR integration.
 
 **Academic delivery does not require GitHub Actions or a production deployment.**
+
+## PR-first communication upgrade (2026-10-09)
+
+- [x] [`docs/PR_REVIEW_HANDOFF.md`](docs/PR_REVIEW_HANDOFF.md) defines SHA-pinned agent checkpoints and reviewer GO/CHANGES_REQUESTED/BLOCKED comments on PR #3.
+- [x] `scripts/check_pr_review.py` and `tests/test_pr_review_handoff.py` added for read-only GitHub polling and anti-stale-review checks.
+- [x] TASK 01/G0 GO **was posted** on [PR #3](https://github.com/anatwork14/py4ds-ai/pull/3#issuecomment-6071463946), authorizing TASK 02/G1. This supersedes the older TASK 01 “NOT STARTED” status above; the historic table is retained as an unaudited execution snapshot.
+- [ ] TASK 02/G1 Ubuntu execution checkpoint posted with the new machine-readable marker and a full SHA.
+- [ ] Agent confirms the **15-minute PR/Issue polling loop or server timer is actually running**. A script checked into Git is *not* proof a background process exists.
+- [ ] Reviewer posts an exact TASK 02 checkpoint-matching decision; subsequent tasks remain gated.
