@@ -105,3 +105,15 @@ Course-scope reference: the user's CO3135 Sessions 1–5 establish Python, NumPy
 - Preserve the frozen selected model, manifest and locked final metrics; no additional model architectures, retuning, split changes or unapproved GPU training. Prior Grad-CAM overlays may be regenerated **from validation inputs only**.
 - Each checkpoint records precise PR head SHA, commands and exit codes, evidence hashes, changed files, blockers, current gate and the next proposed change. Reviewer replies `GO`, `CHANGES REQUESTED` or `BLOCKED`; silence is **not** approval.
 - PR stack: #1 (draft, onto `main`) → #2 (onto #1) → #3 (onto #2). Never merge, rebase or mark draft ready without explicit reviewer/owner approval.
+
+## PR-first agent and six-hour reviewer bridge (updated 2026-10-09)
+
+**MANDATORY:** read [`docs/PR_REVIEW_HANDOFF.md`](docs/PR_REVIEW_HANDOFF.md) in addition to `docs/AGENT_EXECUTION_PLAN.md`.
+
+- The **existing PR #3 is the single authoritative communication channel**. Commit source changes into that PR, and post a marked `CO3117_AGENT_CHECKPOINT` GitHub PR comment after each completed task or six active work hours.
+- The independent reviewer runs its own six-hour GitHub review and posts `CO3117_REVIEW_DECISION` on **that same PR**, tied to the exact checkpoint ID and *full SHA*. Never confuse a generic comment or an earlier GO with a new authorization.
+- The Ubuntu agent **must check PR comments and applicable task-Issue updates approximately every 15 minutes while paused**, by keeping an actual polling loop or configured server timer alive. Use the read-only `scripts/check_pr_review.py` with `--checkpoint-id`, `--head-sha` and `--task`. **The agent must install and verify the polling timer/runner itself if unattended operation is required**; merely printing polling instructions is not evidence that monitoring is running.
+- GitHub Issues were disabled at setup; use the PR as the checkpoint board and inspect GitHub Issues when enabled. Mirror issue tasks when possible, but GO decisions for PR #3 remain on PR #3.
+- After an exact GO, proceed **only** to the specifically authorized next gate. CHANGES_REQUESTED authorizes only repairs to the current gate; BLOCKED or communication failures require holding position. No work ahead of the reviewer.
+- **Already granted:** TASK 01/G0 GO in PR #3 comment `6071463946`. TASK 02/G1 is authorized; its next checkpoint must use the new marked protocol.
+- **Immutable guard:** do not rerun final held-out evaluator, change frozen data/selection/metrics or merge the PR stack without separate explicit authorization.
