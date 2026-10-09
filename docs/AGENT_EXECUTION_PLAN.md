@@ -140,3 +140,11 @@ The reviewer replies **GO — TASK 0X accepted, proceed to TASK 0Y**, **CHANGES 
 ## Completion definition
 
 The project is ready for final academic submission only when the four coursework requirements are evidenced in report/code, local tests/lint pass at the final SHA, saved existing predictions reconcile with the frozen manifest and reported metrics, the qualitative explanation is correctly aligned or transparently excluded, and unresolved caveats are not hidden. The final reviewer can withhold sign-off despite technically mergeable PRs.
+
+## Current PR-first handoff override (2026-10-09)
+
+This section **supersedes** any earlier language suggesting the agent must passively wait for a person to paste a decision into its chat. The owner requested a GitHub-centered workflow: the agent posts code and checkpoints to PR #3; the independent reviewer inspects GitHub every six hours and writes a PR comment; the Ubuntu agent **actively polls PR comments and issue activity about every 15 minutes** to detect an exact reviewer response.
+
+Follow the complete machine-readable marker, SHA-pinning, GitHub poller CLI, issue fallback, and review-response policy in [`PR_REVIEW_HANDOFF.md`](PR_REVIEW_HANDOFF.md). **The existing TASK 01 GO in PR comment 6071463946 authorizes TASK 02 now.** TASK 02 onward must post `CO3117_AGENT_CHECKPOINT` markers; the reviewer must respond with `CO3117_REVIEW_DECISION` carrying exactly the same checkpoint ID/full SHA. A `GO` for an older checkpoint is never sufficient. The server agent, not ChatGPT, is responsible for setting up and demonstrating a live 15-minute polling process/timer if unattended operation is required.
+
+No new GitHub Actions, re-evaluation on the held-out test, retraining, unauthorized merging, license-unsafe artifact uploads, or fabricated Ubuntu results are permitted.
