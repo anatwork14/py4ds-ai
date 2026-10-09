@@ -52,12 +52,12 @@ Supported verdicts are `GO`, `CHANGES_REQUESTED`, and `BLOCKED`. A rejected gate
 
 ## Recommended 15-minute Ubuntu polling
 
-The repo includes **[scripts/check_pr_review.py](../scripts/check_pr_review.py)**, a read-only tool using the existing `gh` login. It checks the *latest checkpoint*, exact checkpoint ID, full SHA, latest matching reviewer verdict, and (when enabled) open CO3117 task-Issue comments.
+The repo includes **[scripts/check_pr_review.py](../scripts/check_pr_review.py)**, a read-only tool using the existing `gh` login. It checks the *latest checkpoint*, exact checkpoint ID, full SHA **against the current GitHub PR head**, latest matching reviewer verdict, and (when enabled) open CO3117 task-Issue comments.
 
 After posting a TASK 02 checkpoint, run:
 
 ```bash
-python3.12 scripts/check_pr_review.py \
+.venv/bin/python scripts/check_pr_review.py \
   --repo anatwork14/py4ds-ai --pr 3 \
   --checkpoint-id G1-REPLACE-WITH-YOURS \
   --head-sha REPLACE_WITH_EXACT_40_CHAR_HEAD_SHA \
@@ -78,12 +78,12 @@ For an **active foreground agent session**, a simple 15-minute checking loop suf
 
 ```bash
 while true; do
-  python3.12 scripts/check_pr_review.py \
+  .venv/bin/python scripts/check_pr_review.py \
     --checkpoint-id G1-REPLACE-WITH-YOURS \
     --head-sha REPLACE_WITH_EXACT_40_CHAR_HEAD_SHA \
     --task TASK-02
   result=$?
-  if [ "$result" -eq 0 ] || [ "$result" -eq 11 ] || [ "$result" -eq 12 ]; then
+  if [ "$result" -eq 0 ] || [ "$result" -eq 2 ] || [ "$result" -eq 11 ] || [ "$result" -eq 12 ]; then
     break
   fi
   sleep 900
@@ -92,7 +92,7 @@ done
 
 If the agent's chat/process terminates, this loop also terminates. For true unattended checking, **have the Ubuntu agent install/verify a user systemd timer or cron entry at 15-minute intervals**, keeping the current checkpoint ID/SHA in a state file. It may notify/resume the agent through an existing authorized runner, but must **not blindly launch arbitrary code or start the next task without a matching GO**. Do not install a new proprietary orchestration service.
 
-Polling can be silent when no result changes. Reviewer checks are scheduled **every six hours**, but a reviewer may comment sooner; agent checks every ~15 minutes so it can react as soon as the comment appears. A review schedule is not a guaranteed instant reply.
+Polling can be silent when no result changes. When the PR head advances, the poller returns `HEAD_MOVED` (exit 10); the agent must rerun the relevant checks at the new head and publish a new checkpoint before using any prior GO. Reviewer checks are scheduled **every six hours**, but a reviewer may comment sooner; agent checks every ~15 minutes so it can react as soon as the comment appears. A review schedule is not a guaranteed instant reply.
 
 ## Required workflow after a checkpoint
 
