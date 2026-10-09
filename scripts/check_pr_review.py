@@ -52,7 +52,12 @@ def _fetch_pages(path: str) -> list[dict[str, Any]]:
 
 
 def reviewer_decision(
-    comments: list[dict[str, Any]], checkpoint_id: str, head_sha: str, task: str
+    comments: list[dict[str, Any]],
+    checkpoint_id: str,
+    head_sha: str,
+    task: str,
+    *,
+    current_pr_sha: str | None = None,
 ) -> dict[str, str]:
     """Reject stale or other-checkpoint GO comments, including old G0 approvals."""
     ordered = sorted(comments, key=lambda comment: int(comment.get("id", 0)))
@@ -71,6 +76,11 @@ def reviewer_decision(
             "verdict": "STALE_CHECKPOINT",
             "reason": "Supplied checkpoint is not the most recent PR checkpoint",
         }
+    if current_pr_sha is not None and current_pr_sha != head_sha:
+        return {
+            "verdict": "HEAD_MOVED",
+            "reason": "PR head advanced since this checkpoint; refresh tests and repost",
+        }
     for comment in reversed(ordered):
         comment_id = int(comment.get("id", 0))
         if comment_id <= latest_id:
@@ -83,6 +93,21 @@ def reviewer_decision(
                 "url": str(comment.get("html_url") or ""),
             }
     return {"verdict": "WAITING_FOR_REVIEW", "reason": "No matching reviewer decision yet"}
+
+
+def _pr_head_sha(repo: str, pr: int) -> str:
+    proc = subprocess.run(
+        ["gh", "api", f"repos/{repo}/pulls/{pr}", "--jq", ".head.sha"],
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    if proc.returncode:
+        raise RuntimeError(f"Unable to read current PR head: {proc.stderr.strip()}")
+    sha = proc.stdout.strip()
+    if not re.fullmatch(r"[0-9a-f]{40}", sha):
+        raise ValueError("GitHub returned an invalid PR head SHA")
+    return sha
 
 
 def _issue_summary(repo: str) -> dict[str, Any]:
@@ -141,12 +166,18 @@ def main(argv: list[str] | None = None) -> int:
 
     try:
         comments = _fetch_pages(f"repos/{args.repo}/issues/{args.pr}/comments?per_page=100")
+        current_pr_sha = _pr_head_sha(args.repo, args.pr)
         result: dict[str, Any] = reviewer_decision(
-            comments, args.checkpoint_id, args.head_sha, args.task
+            comments,
+            args.checkpoint_id,
+            args.head_sha,
+            args.task,
+            current_pr_sha=current_pr_sha,
         )
         result.update({
             "checkpoint_id": args.checkpoint_id,
             "head_sha": args.head_sha,
+            "current_pr_sha": current_pr_sha,
             "task": args.task,
             "pr_url": f"https://github.com/{args.repo}/pull/{args.pr}",
         })
