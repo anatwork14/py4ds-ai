@@ -2,7 +2,7 @@
 
 **Authoritative work surface:** [PR #3](https://github.com/anatwork14/py4ds-ai/pull/3), branch `implementation/phase1-data-manifest`.  
 **Primary assignment:** [AGENT_EXECUTION_PLAN.md](AGENT_EXECUTION_PLAN.md) TASK 01–06.  
-**Current permission:** G2/TASK 03 was approved in PR #3 comment [6073137646](https://github.com/anatwork14/py4ds-ai/pull/3#issuecomment-6073137646). **TASK 04/G3 is the only authorized work**; after its checkpoint, pause for an exact matching decision. Keep the 15-minute poller read-only and do not enable automatic task execution: agent and reviewer both appear as `anatwork14`, so author verification is not independent.
+**Current permission:** G3/TASK 04 was approved in PR #3 comment [6073541055](https://github.com/anatwork14/py4ds-ai/pull/3#issuecomment-6073541055), authorizing **TASK 05/G4 only**. G4 is in progress; after posting its checkpoint, pause for a matching decision and do not start TASK 06/G5 until reviewer GO. Keep the 15-minute poller read-only and automatic task execution disabled because agent and reviewer both appear as `anatwork14`.
 
 ## Division of labor: no direct chat is required for each handoff
 

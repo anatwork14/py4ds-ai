@@ -87,7 +87,7 @@ The run metadata records source commit `11334744c8634bc5a593e69fa271dc69bb626fd4
 
 ## Remaining work and caveats
 
-- Push the reviewed commits to the existing implementation branch/PR and verify the remote PR and CI status.
+- G4 documentation review is underway at the latest branch head. The source branch/PR are already synchronized through G3; no GitHub Actions run is required. Preserve the within-test near-duplicate, dirty historical training-worktree, and unresolved rights caveats below.
 - Dataset-specific reuse terms remain unverified. Keep the archive, source images, and image-bearing figures local unless rights are confirmed.
 - Four retained test–test near-duplicate candidates limit the independence assumption; do not remove them or retune against test.
 - Training run metadata records commit `11334744c8634bc5a593e69fa271dc69bb626fd4` with a dirty worktree. The saved run artifacts are the direct evidence; that commit alone does not identify the exact training source tree.

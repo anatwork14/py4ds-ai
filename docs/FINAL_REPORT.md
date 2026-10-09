@@ -253,16 +253,7 @@ No test-image examples or image-bearing saliency figures are included here. Grad
 
 ## Qualitative explanation integrity
 
-The training pipeline saves Grad-CAM overlays of a predefined sequence of
-validation mistakes and then correct validation examples. The overlay
-implementation was corrected in the reviewer pass to invert the *same*
-normalized, resized, center-cropped tensor presented to the model rather
-than stretching the original image to 224 × 224. This change affects
-**future** generated overlays only. Existing saved overlays from the
-earlier implementation should not be treated as spatially validated;
-regenerate validation-only figures from an existing checkpoint after
-running the new alignment regression test. Do not rerun the held-out
-test evaluator or select a different model based on these visualizations.
+The model-inspection pipeline uses Grad-CAM on the output of the final ResNet18 `layer4` residual block, targeting the saved validation prediction. Six corrected validation-only overlays were regenerated locally from the frozen selected checkpoint and saved validation predictions after the crop-alignment correction. Their local QA manifest records sample IDs, true/predicted labels, source paths and per-image hashes; the reviewer has not independently inspected the local image bytes. Twelve earlier overlays (six head-only and six layer4) predate the correction and are marked superseded locally. The corrected overlays are qualitative visualizations, not causal or ground-truth explanations. No test images were used. All image-bearing outputs remain local and are neither embedded here nor committed while redistribution rights remain unverified. Do not rerun the held-out evaluator or select a different model based on these visualizations.
 
 ## Scope of independent verification
 
@@ -276,6 +267,15 @@ quoted 0.931004 test macro-F1. The local evidence and SHA-256s listed
 above must be checked by an Ubuntu operator before final academic
 sign-off. Review instructions and outstanding gates are in
 [`FINAL_REVIEW_2026-10-08.md`](FINAL_REVIEW_2026-10-08.md).
+
+## Four course criteria
+
+| Instructor criterion | Where addressed | Evidence and qualification |
+|---|---|---|
+| Problem definition | Problem definition and research questions; Dataset and evaluation protocol | Six-class supervised scene classification, research questions, reviewed manifest and split counts. |
+| Literature review | Literature synthesis and methodological choices; `docs/LITERATURE_REVIEW.md` | HOG, SIFT/BoVW, ResNet/transfer learning and Grad-CAM are attributed to their cited publications; paper benchmarks are not presented as Intel results. |
+| Algorithm/pipeline | Implemented pipeline, preprocessing and tuning | Data/leakage controls, HOG, SIFT-BoVW, frozen ResNet features, head training and layer4 fine-tuning with validation-only selection. |
+| Comparative evaluation | Validation comparison, frozen selection, final test results and limitations | Five candidate comparisons use validation macro-F1; only the frozen winner has one held-out test result. Single-split, dirty historical training-source and rights caveats remain disclosed. |
 
 ## Requirements compliance matrix
 

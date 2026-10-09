@@ -1,7 +1,7 @@
 # CO3117 academic project — agent/reviewer progress
 
 **Last updated:** 2026-10-09, Asia/Ho_Chi_Minh
-**Status:** FINAL REVIEW OPEN — G3 evidence ready; waiting for reviewer GO.
+**Status:** G4 implementation underway; G3 accepted; awaiting G4 checkpoint/review before G5.
 **Primary PR:** [#3](https://github.com/anatwork14/py4ds-ai/pull/3)  
 **Task definitions:** [docs/AGENT_EXECUTION_PLAN.md](docs/AGENT_EXECUTION_PLAN.md)  
 **Final-review criteria:** [docs/FINAL_REVIEW_2026-10-08.md](docs/FINAL_REVIEW_2026-10-08.md)
@@ -20,14 +20,14 @@ This is an evidence ledger, **not** a claim that test scripts ran in the latest 
 
 ## Required execution gates (must execute on Ubuntu; each gate needs reviewer GO)
 
-| Task | Priority | Gate | State | Last proven execution SHA / evidence |
+| Task | Priority | Gate | Current state | Evidence |
 |---|---|---|---|---|
-| TASK 01: Ubuntu worktree/artifact inventory | P0 | G0 | **NOT STARTED** | — |
-| TASK 02: locked uv, Ruff, pytest, diff checks | P0 | G1 | **NOT STARTED** | — |
-| TASK 03: frozen manifest/prediction/metric audit | P0 | G2 | **NOT STARTED** | — |
-| TASK 04: Grad-CAM validation-only explanation QA | P1 | G3 | **NOT STARTED** | — |
-| TASK 05: rendered report and literature/assignment QA | P1 | G4 | **NOT STARTED** | — |
-| TASK 06: PR #1 → #2 → #3 merge readiness | P1 | G5 | **NOT STARTED** | — |
+| TASK 01: Ubuntu worktree/artifact inventory | P0 | G0 | **ACCEPTED** | G0 checkpoint and reviewer decision on PR #3 |
+| TASK 02: locked uv, Ruff, pytest, diff checks | P0 | G1 | **ACCEPTED** | `c77c521688ae67bbc3695a5966ba10ceb73e76c9`; 117 tests passed |
+| TASK 03: frozen manifest/prediction/metric audit | P0 | G2 | **ACCEPTED** | Read-only saved-prediction verification at `c77c521`; no new scoring |
+| TASK 04: Grad-CAM validation-only explanation QA | P1 | G3 | **ACCEPTED** | `0b98d73113f6b38a5e5e904a47f41e2c60d8f2e6`; six local replacement overlays, 12 old overlays marked superseded |
+| TASK 05: rendered report and literature/assignment QA | P1 | G4 | **IN PROGRESS — DOCS UPDATED; VERIFY/COMMIT PENDING** | G3 reviewer GO; double-render identical; final validation/checkpoint pending |
+| TASK 06: PR #1 → #2 → #3 integration review | P1 | G5 | **BLOCKED — WAIT FOR G4 GO** | Do not start before a fresh matching reviewer decision |
 
 ## Protected final-test evidence
 
@@ -54,20 +54,19 @@ Add a brief log line at each agent handoff and link the primary GitHub comment/I
 
 **Academic delivery does not require GitHub Actions or a production deployment.**
 
-## PR-first communication upgrade (2026-10-09)
+## PR-first communication record (historical checkpoints; current gate is below)
 
-- [x] [`docs/PR_REVIEW_HANDOFF.md`](docs/PR_REVIEW_HANDOFF.md) defines SHA-pinned agent checkpoints and reviewer GO/CHANGES_REQUESTED/BLOCKED comments on PR #3.
-- [x] `scripts/check_pr_review.py` and `tests/test_pr_review_handoff.py` added for read-only GitHub polling and anti-stale-review checks.
-- [x] TASK 01/G0 GO **was posted** on [PR #3](https://github.com/anatwork14/py4ds-ai/pull/3#issuecomment-6071463946), authorizing TASK 02/G1. This supersedes the older TASK 01 “NOT STARTED” status above; the historic table is retained as an unaudited execution snapshot.
-- [ ] TASK 02/G1 Ubuntu execution checkpoint posted with the new machine-readable marker and a full SHA.
-- [ ] Agent confirms the **15-minute PR/Issue polling loop or server timer is actually running**. A script checked into Git is *not* proof a background process exists.
-- [ ] Reviewer posts an exact TASK 02 checkpoint-matching decision; subsequent tasks remain gated.
+- [x] `docs/PR_REVIEW_HANDOFF.md` defines SHA-pinned agent checkpoints and reviewer decisions on PR #3.
+- [x] `scripts/check_pr_review.py` and `tests/test_pr_review_handoff.py` implement read-only review polling and stale-head checks.
+- [x] TASK 01/G0, TASK 02/G1 and TASK 03/G2 were completed and accepted; see the linked PR checkpoint comments.
+- [x] TASK 04/G3 was accepted by reviewer decision [6073541055](https://github.com/anatwork14/py4ds-ai/pull/3#issuecomment-6073541055), authorizing TASK 05/G4 only.
+- [ ] G4 checkpoint not yet posted. Update the read-only 15-minute poller to the new G4 checkpoint after posting; automatic task execution remains disabled because the reviewer and agent share GitHub identity `anatwork14`.
 
 ## Current execution status — 2026-10-09
 
-This section supersedes the historical gate table and interim G0/G1 handoff snapshot above.
+This is the single authoritative live status; historical checkpoint comments remain linked in PR #3.
 
-- TASK 01/G0, TASK 02/G1 and TASK 03/G2 have matching PR decisions; the G2 GO is [comment 6073137646](https://github.com/anatwork14/py4ds-ai/pull/3#issuecomment-6073137646) at head `c77c521688ae67bbc3695a5966ba10ceb73e76c9`.
-- TASK 04/G3 is authorized and its local evidence is ready for a SHA-pinned PR checkpoint. The focused geometry tests passed; old figures are marked superseded; six replacement validation-only overlays were generated and audited. No test images, training, or final evaluator were used.
-- The 15-minute PR poller is read-only. Automatic task execution remains disabled because agent and reviewer both appear as `anatwork14`; do not dispatch from comments until a separate reviewer identity or independently verifiable signed approval is available.
-- After the G3 checkpoint is posted, wait for a matching reviewer GO before TASK 05/G4. Do not merge PRs or alter frozen results.
+- TASK 01/G0, TASK 02/G1 and TASK 03/G2 were completed and accepted. TASK 04/G3 was accepted by reviewer comment [6073541055](https://github.com/anatwork14/py4ds-ai/pull/3#issuecomment-6073541055), authorizing TASK 05/G4 only.
+- G4 report rendering ran twice at the unchanged G3 SHA; outputs were byte-identical (SHA-256 `8aa36d3d887ccd126a7e8c62b28fd450948ff68bbb7777539b85d230b4b104e4`). Citation numbering/authors were cross-checked against the literature-review entries, and the report now maps the four course criteria explicitly.
+- Stale Grad-CAM text and old unchecked G1/G2 checklist states were corrected. The six corrected Grad-CAM image files remain local pending rights verification.
+- After G4 commit/checkpoint, stop and wait for reviewer GO. TASK 06/G5 is not authorized yet. Never rerun final test evaluation or alter frozen results.
