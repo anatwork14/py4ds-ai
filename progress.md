@@ -1,7 +1,7 @@
 # CO3117 academic project — agent/reviewer progress
 
-**Last updated:** 2026-10-08, Asia/Ho_Chi_Minh  
-**Status:** FINAL REVIEW OPEN — awaiting Ubuntu evidence.  
+**Last updated:** 2026-10-09, Asia/Ho_Chi_Minh
+**Status:** FINAL REVIEW OPEN — G3 evidence ready; waiting for reviewer GO.
 **Primary PR:** [#3](https://github.com/anatwork14/py4ds-ai/pull/3)  
 **Task definitions:** [docs/AGENT_EXECUTION_PLAN.md](docs/AGENT_EXECUTION_PLAN.md)  
 **Final-review criteria:** [docs/FINAL_REVIEW_2026-10-08.md](docs/FINAL_REVIEW_2026-10-08.md)
@@ -32,9 +32,9 @@ This is an evidence ledger, **not** a claim that test scripts ran in the latest 
 ## Protected final-test evidence
 
 - [x] Repository documents one already-completed one-time final-test evaluation for the selected ResNet18-layer4 model.
-- [ ] Ubuntu auditor independently verified the held-out report numbers against saved `predictions_test.csv`, `metrics.json`, checkpoint SHA-256 and locked manifest.
-- [ ] Evidence audit confirmed evaluation guard remains `COMPLETED`.
-- [ ] Old misaligned validation Grad-CAM images clearly excluded or regenerated using corrected transforms.
+- [x] Ubuntu auditor independently verified the held-out report numbers against saved `predictions_test.csv`, `metrics.json`, checkpoint SHA-256 and locked manifest.
+- [x] Evidence audit confirmed evaluation guard remains `COMPLETED`.
+- [x] Old misaligned validation Grad-CAM images marked superseded; corrected validation-only overlays regenerated from the frozen checkpoint and dimensions verified. See [`docs/GRADCAM_QA.md`](docs/GRADCAM_QA.md).
 
 **Do not rerun the held-out evaluator to fill any of the above checkboxes.** Saved-prediction inspection is read-only and does not score images.
 
@@ -62,3 +62,12 @@ Add a brief log line at each agent handoff and link the primary GitHub comment/I
 - [ ] TASK 02/G1 Ubuntu execution checkpoint posted with the new machine-readable marker and a full SHA.
 - [ ] Agent confirms the **15-minute PR/Issue polling loop or server timer is actually running**. A script checked into Git is *not* proof a background process exists.
 - [ ] Reviewer posts an exact TASK 02 checkpoint-matching decision; subsequent tasks remain gated.
+
+## Current execution status — 2026-10-09
+
+This section supersedes the historical gate table and interim G0/G1 handoff snapshot above.
+
+- TASK 01/G0, TASK 02/G1 and TASK 03/G2 have matching PR decisions; the G2 GO is [comment 6073137646](https://github.com/anatwork14/py4ds-ai/pull/3#issuecomment-6073137646) at head `c77c521688ae67bbc3695a5966ba10ceb73e76c9`.
+- TASK 04/G3 is authorized and its local evidence is ready for a SHA-pinned PR checkpoint. The focused geometry tests passed; old figures are marked superseded; six replacement validation-only overlays were generated and audited. No test images, training, or final evaluator were used.
+- The 15-minute PR poller is read-only. Automatic task execution remains disabled because agent and reviewer both appear as `anatwork14`; do not dispatch from comments until a separate reviewer identity or independently verifiable signed approval is available.
+- After the G3 checkpoint is posted, wait for a matching reviewer GO before TASK 05/G4. Do not merge PRs or alter frozen results.
