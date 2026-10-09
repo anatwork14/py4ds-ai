@@ -93,3 +93,13 @@ def test_invalid_marker_is_ignored() -> None:
     assert handoff.reviewer_decision(comments, "G1-A", HEAD, "TASK-02")["verdict"] == (
         "AWAITING_CHECKPOINT"
     )
+
+def test_current_pr_head_must_still_match_checkpoint() -> None:
+    comments = [_comment(10, CHECKPOINT), _comment(11, _review("GO"))]
+    assert handoff.reviewer_decision(
+        comments,
+        "G1-A",
+        HEAD,
+        "TASK-02",
+        current_pr_sha=OTHER_HEAD,
+    )["verdict"] == "HEAD_MOVED"
