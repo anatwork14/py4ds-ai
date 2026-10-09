@@ -201,7 +201,7 @@ def test_render_report_rejects_modified_selected_candidate(tmp_path: Path) -> No
     selection_path.write_text(json.dumps(selection), encoding="utf-8")
     original = report_path.read_text(encoding="utf-8")
 
-    with pytest.raises(ValueError, match="must exactly match"):
+    with pytest.raises(ValueError, match="checkpoint hash does not match frozen selection"):
         render_report(root, report_path, selection_path, final_metrics_path)
 
     assert report_path.read_text(encoding="utf-8") == original
