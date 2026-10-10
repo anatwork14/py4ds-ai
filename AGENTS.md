@@ -1,5 +1,8 @@
 # AGENTS.md — Intel Natural Scene Classification
 
+> **ACTIVE AUTHORITY TRANSFER — 2026-10-10:** Hermes Orchestrator is the **sole technical/research lead and final reviewer** for this CO3117 project. Codex (GPT-6 Luna, high reasoning requested) is Hermes's bounded implementation worker in a tmux session/task worktree. Read [docs/HERMES_ORCHESTRATION_CHARTER.md](docs/HERMES_ORCHESTRATION_CHARTER.md) and [docs/HERMES_BOOTSTRAP_RUNBOOK.md](docs/HERMES_BOOTSTRAP_RUNBOOK.md) FIRST. These supersede all legacy statements below requiring ChatGPT GO, external six-hour pauses, GitHub-comment identity allowlists or human handoff of routine technical choices. ChatGPT scheduled review is being disabled; Hermes must independently configure/verify its own monitoring before claiming autonomy. The original one-time sealed test, image rights, scientific integrity, read-only Kaggle data, and no-CI/coursework scope restrictions remain binding.
+
+
 ## Mission and decision record
 
 This repository is a **comparative supervised image classification** project, not demand forecasting or anomaly detection. Solve the six-way Intel natural-scene classification problem on the dataset at https://www.kaggle.com/datasets/puneet6060/intel-image-classification using both classical ML and transfer learning. Deliver a reproducible research-grade implementation, literature review, and experimentally supported comparison.
@@ -23,7 +26,7 @@ Read the original repository before modifying code: README.md, dataset_metadata.
 
 ## Scope: models that must actually be compared
 
-A. Majority-class or stratified random baseline, using no visual signal; evaluate on validation and once at final test.
+A. Majority-class or stratified random baseline, using no visual signal; evaluate on validation only. The held-out test was already scored once for the frozen selected CNN, and must never be scored again.
 
 B. **Classical ML:** HOG + StandardScaler + optional PCA + LinearSVC; SIFT + Bag of Visual Words + LinearSVC or LogisticRegression. Implement feature-extractor interfaces with deterministic output and training-only fitting for codebook/PCA/scaler. Add a meaningful hyperparameter grid (e.g., SVM C, PCA components, vocabulary size) evaluated on train-validation only. Include clear preprocessing and engineered-feature visualizations.
 
@@ -44,7 +47,7 @@ Use PyTorch/torchvision as the primary DL stack, consistent with the course; sci
 
 - Use identical frozen manifests for fair comparisons and a single locked test protocol.
 - Choose hyperparameters and early-stopping epoch using train/validation only; test once after selections are frozen.
-- Output per-model train and validation details, plus final test: accuracy, macro-F1 (primary secondary metric), weighted-F1, per-class precision/recall/F1/support, confusion matrix with fixed class order, normalized confusion matrix, run time, parameter count for DL and inference latency under specified conditions.
+- Output per-model train and validation details. Final test metrics (accuracy, macro-F1, weighted-F1, per-class precision/recall/F1/support, confusion matrices and timing) exist **only for the previously frozen and evaluated winner**; all unselected models keep NOT RUN test status. Never run the final evaluator again for the existing manifest.
 - Save per-image CSV: image identifier, true label, predicted label, score/probability if supported; use decision values with correct naming when probabilities unavailable. For DL, report cross-entropy/learning curves and examples of errors; use Grad-CAM on a genuinely differentiable CNN for selected correct/incorrect samples, label as *qualitative* interpretation rather than ground-truth explanation.
 - Compare accuracy versus computation and error patterns, not just top score. Distinguish measured Intel dataset performance from published ImageNet results. No accuracy is a target to fabricate or "hit."
 - Run confidence intervals or repeated seeds when compute permits; if only one run, disclose the limitation.
@@ -92,3 +95,28 @@ At each phase report: changed files, exact commands run, actual tests passed/fai
 - notebooks/main.ipynb and report.pdf exist but require separate inspection before asserting what they contain or how they ran.
 
 Course-scope reference: the user's CO3135 Sessions 1–5 establish Python, NumPy, PyTorch tensors/autograd, Pandas, preprocessing, correct split/fit discipline and training loops. Explain unfamiliar CNN, HOG, SIFT, transfer-learning or interpretation concepts rather than assuming prior mastery.
+
+## Active execution mandate — academic finalization (2026-10-08)
+
+**All agents must read [`docs/AGENT_EXECUTION_PLAN.md`](docs/AGENT_EXECUTION_PLAN.md) before beginning new work.** That plan is the authoritative, current task-order, priority, acceptance, reporting and reviewer-stop protocol for final coursework submission. The earlier implementation phases above are historical guidance: do not replay phases, alter immutable experimental artifacts or treat superseded “evaluate baseline on final test” language as current permission.
+
+- Execute **TASK 01 → TASK 06** in order, gating each through a reviewer’s `GO` comment. Do not start a new gate simply because an earlier implementation exists.
+- Use **PR #3** as the GitHub evidence and checkpoint board. At most **six hours** of active work per approved task before a structured checkpoint; STOP on failed acceptance gates, unverified scientific claims, missing provenance, unsafe access or branch conflicts.
+- **GitHub Issues are presently disabled.** If the owner enables them, mirror the task numbers into dedicated Issues and link all to PR #3; never claim an issue was created when its API returns 410.
+- Local Ubuntu test/lint/artifact verification is required; GitHub Actions is **not** required and must not be added as a substitute.
+- All work must preserve the final test guard state `COMPLETED`; **never rerun the final evaluator or test images to obtain new measurements**. Read-only existing-prediction audit (`scripts/verify_saved_final_artifacts.py`) is permitted. Never rewrite a failing artifact hash to match tampered data.
+- Preserve the frozen selected model, manifest and locked final metrics; no additional model architectures, retuning, split changes or unapproved GPU training. Prior Grad-CAM overlays may be regenerated **from validation inputs only**.
+- Each checkpoint records precise PR head SHA, commands and exit codes, evidence hashes, changed files, blockers, current gate and the next proposed change. Reviewer replies `GO`, `CHANGES REQUESTED` or `BLOCKED`; silence is **not** approval.
+- PR stack: #1 (draft, onto `main`) → #2 (onto #1) → #3 (onto #2). Never merge, rebase or mark draft ready without explicit reviewer/owner approval.
+
+## PR-first agent and six-hour reviewer bridge (updated 2026-10-09)
+
+**MANDATORY:** read [`docs/PR_REVIEW_HANDOFF.md`](docs/PR_REVIEW_HANDOFF.md) in addition to `docs/AGENT_EXECUTION_PLAN.md`.
+
+- The **existing PR #3 is the single authoritative communication channel**. Commit source changes into that PR, and post a marked `CO3117_AGENT_CHECKPOINT` GitHub PR comment after each completed task or six active work hours.
+- The independent reviewer runs its own six-hour GitHub review and posts `CO3117_REVIEW_DECISION` on **that same PR**, tied to the exact checkpoint ID and *full SHA*. Never confuse a generic comment or an earlier GO with a new authorization.
+- The Ubuntu agent **must check PR comments and applicable task-Issue updates approximately every 15 minutes while paused**, by keeping an actual polling loop or configured server timer alive. Use the read-only `scripts/check_pr_review.py` with `--checkpoint-id`, `--head-sha` and `--task`. **The agent must install and verify the polling timer/runner itself if unattended operation is required**; merely printing polling instructions is not evidence that monitoring is running.
+- GitHub Issues were disabled at setup; use the PR as the checkpoint board and inspect GitHub Issues when enabled. Mirror issue tasks when possible, but GO decisions for PR #3 remain on PR #3.
+- After an exact GO, proceed **only** to the specifically authorized next gate. CHANGES_REQUESTED authorizes only repairs to the current gate; BLOCKED or communication failures require holding position. No work ahead of the reviewer.
+- **Already granted:** TASK 01/G0 GO in PR #3 comment `6071463946`. TASK 02/G1 is authorized; its next checkpoint must use the new marked protocol.
+- **Immutable guard:** do not rerun final held-out evaluator, change frozen data/selection/metrics or merge the PR stack without separate explicit authorization.
