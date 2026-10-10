@@ -1,3 +1,5 @@
+> **SUPERSEDED AUTHORITY (2026-10-10):** The six historical G0–G5 task definitions and scientific checklists below remain useful as evidence and acceptance criteria, but **ChatGPT GO is no longer required**. Hermes is the sole technical/research orchestrator and reviewer. Use [HERMES_ORCHESTRATION_CHARTER.md](HERMES_ORCHESTRATION_CHARTER.md) and [HERMES_BOOTSTRAP_RUNBOOK.md](HERMES_BOOTSTRAP_RUNBOOK.md) instead for current gate authority, own hourly/six-hour monitoring and Codex worker dispatch. TASK 05/G4 was still unaccepted when responsibility transferred; Hermes must revalidate at the current SHA. Protected held-out-test rules remain unchanged.
+
 # CO3117 — Agent execution plan and final-review control board
 
 **Issued:** 2026-10-08 (Asia/Ho_Chi_Minh). **Authority:** final reviewer operating through [PR #3](https://github.com/anatwork14/py4ds-ai/pull/3).  
