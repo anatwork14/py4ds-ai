@@ -1,3 +1,5 @@
+> **HISTORICAL PR HANDOFF (superseded 2026-10-10):** This document records the former ChatGPT reviewer / PR-comment-based GO protocol for auditability. It is **NOT the current execution authorization model**. Hermes is now the sole technical/research reviewer and task dispatcher, using a local state machine and one Codex tmux worker under [HERMES_ORCHESTRATION_CHARTER.md](HERMES_ORCHESTRATION_CHARTER.md) and [HERMES_BOOTSTRAP_RUNBOOK.md](HERMES_BOOTSTRAP_RUNBOOK.md). Never machine-trigger execution from the old shared-account GitHub GO markers; previous comments remain evidence only.
+
 # PR-first agent ↔ reviewer handoff (CO3117)
 
 **Authoritative work surface:** [PR #3](https://github.com/anatwork14/py4ds-ai/pull/3), branch `implementation/phase1-data-manifest`.  
