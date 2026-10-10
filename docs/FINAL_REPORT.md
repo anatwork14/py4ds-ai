@@ -2,7 +2,7 @@
 
 **Report date:** 2026-10-08
 **Status:** one held-out evaluation completed; selected model scored once.
-**Current evaluation code commit:** `5303a1078a54119c51445fd0e1e12feb4c1167e4`.
+**Historical one-time evaluation code commit:** `5303a1078a54119c51445fd0e1e12feb4c1167e4`.
 
 ## Executive summary
 
@@ -111,13 +111,17 @@ author, venue, method and limitation notes see
    The output includes classwise precision, recall, F1, support, confusion
    counts and inference timing. All other test scores remain **NOT RUN**.
 
-The source CLIs expose classical `C` values of 0.01, 0.1, 1 and 10 by
-default, BoVW vocabulary sizes 64, 128 and 256 by default, and configuration
-files in each local `runs/` directory record the *actual* settings.
-Those defaults are not a claim that every possible grid point finished on
-the server; consult the local run records for exact search coverage.
-The CNN command documentation records a five-epoch maximum and
-validation-based early stopping for the reference runs. The small
+The saved `config.json` files for the seed-42 pHash-reviewed runs record
+these configured search budgets: HOG used `C=[0.01, 0.1, 1, 10]` with
+LinearSVC and LogisticRegression; SIFT–BoVW used vocabulary sizes `[64, 128]`,
+`C=[0.1, 1]`, both learners, and `max_descriptors=30000`; frozen ResNet
+embeddings used `C=[0.1, 1]` with the same two learners. These are configured
+search spaces, not independent proof that every trial completed or produced a
+saved result; trial-completion claims require per-trial evidence.
+
+The saved CNN configuration records a maximum of five epochs, patience 2,
+batch size 64, and head learning rate 0.001; the layer4 learning rate is
+0.00001. Five is a cap, not a claim that all five epochs ran. The small
 from-scratch CNN is optional and **NOT RUN**; it is not required for the
 reported comparison.
 
@@ -227,15 +231,25 @@ No test-image examples or image-bearing saliency figures are included here. Grad
 
 - Evaluation command used the locked environment and committed code: Python 3.12.14, `uv.lock`, device `cuda:0`, NVIDIA GeForce GTX 1080 Ti, batch size 64, four data-loader workers.
 - The generated results table reports elapsed and per-image time from this local run; these are not hardware-independent benchmarks.
-- Reproduction command from the project root (the single-use guard will reject a second run for this manifest):
+- **Historical one-time evaluation command — provenance only; DO NOT RUN.** It records how the already-completed evaluation was invoked. The held-out evaluator must not be run again:
 
   ```bash
+  # HISTORICAL PROVENANCE ONLY — DO NOT RUN
   uv run --locked --extra dev python scripts/evaluate_final.py \
     --project-root . \
     --selection configs/final-selection-seed-42-phash-reviewed.json \
     --manifest data/manifests/seed-42-phash-reviewed/split_manifest.csv \
     --output-dir runs/seed-42-phash-reviewed/final-evaluation \
     --device cuda:0 --batch-size 64 --num-workers 4
+  ```
+
+- Safe current commands from the project root render the report and audit the already-saved predictions against the original expected digests. They do not perform model inference or score test images:
+
+  ```bash
+  uv run --locked --extra dev python scripts/render_report.py
+  uv run --locked --extra dev python scripts/verify_saved_final_artifacts.py \
+    --expected-metrics-sha256 4df9443c7ad28c9ddd36cc461d38f5f7ed1a0b43b819d2ea0e400dedf9b4967e \
+    --expected-predictions-sha256 85d68f7fac4351716964ec0db773126805ac530c269ed37c607af8cae0486dde
   ```
 
 - Guard record: `runs/.test_evaluation_locks/27c17f497e89a8f3b72975b45fcd1e44038e63edddbd4e721437a9a3500c982e.json`, state `COMPLETED`.
@@ -257,16 +271,19 @@ The model-inspection pipeline uses Grad-CAM on the output of the final ResNet18 
 
 ## Scope of independent verification
 
-Source code, tracked selection metadata, saved numerical summaries, test
-definitions and disclosure statements are inspectable in the GitHub
-repository. Raw images, resolved local run metrics, prediction CSVs,
-trained checkpoint and Ubuntu execution logs are not accessible through
-this GitHub-only review. Consequently, code fixes and static review do
-not constitute an independent rerun or independent verification of the
-quoted 0.931004 test macro-F1. The local evidence and SHA-256s listed
-above must be checked by an Ubuntu operator before final academic
-sign-off. Review instructions and outstanding gates are in
-[`FINAL_REVIEW_2026-10-08.md`](FINAL_REVIEW_2026-10-08.md).
+The earlier GitHub-only reviewer could inspect tracked source and report text,
+but did not have access to local artifact bytes; that review alone did not
+independently verify the quoted test aggregates. On 2026-10-10, Hermes's
+Ubuntu custody audit used `scripts/verify_saved_final_artifacts.py` to
+recompute aggregates and verify sample IDs, order, and labels from the saved
+prediction CSV against the immutable manifest. It exited 0 with
+`VERIFIED_FROM_SAVED_PREDICTIONS`. This is a read-only arithmetic and identity
+audit by the current orchestrator, not an independent reproduction of the
+original training or evaluation. Current G4 report-renderer and final-SHA acceptance are recorded in
+[`HERMES_G4_ACCEPTANCE.md`](HERMES_G4_ACCEPTANCE.md). Review history remains in
+[`FINAL_REVIEW_2026-10-08.md`](FINAL_REVIEW_2026-10-08.md); current authority
+and gate status are recorded in [`HERMES_MASTER_PLAN.md`](HERMES_MASTER_PLAN.md)
+and [`HERMES_DECISION_LOG.md`](HERMES_DECISION_LOG.md).
 
 ## Four course criteria
 
@@ -297,5 +314,5 @@ sign-off. Review instructions and outstanding gates are in
 [3] https://www.cs.princeton.edu/courses/archive/fall09/cos429/papers/csurka-eccv-04.pdf — Csurka et al., Visual Categorization with Bags of Keypoints (ECCV workshop 2004)
 [4] https://openaccess.thecvf.com/content_cvpr_2016/html/He_Deep_Residual_Learning_CVPR_2016_paper.html — He et al., Deep Residual Learning for Image Recognition (CVPR 2016)
 [5] https://openaccess.thecvf.com/content_iccv_2017/html/Selvaraju_Grad-CAM_Visual_Explanations_ICCV_2017_paper.html — Selvaraju et al., Grad-CAM (ICCV 2017)
-[6] https://www.kaggle.com/puneet6060/intel-image-classification/metadata — Kaggle dataset metadata: Intel Image Classification
+[6] https://www.kaggle.com/datasets/puneet6060/intel-image-classification — Kaggle dataset page: Intel Image Classification
 [7] https://openaccess.thecvf.com/content_CVPR_2019/html/Kornblith_Do_Better_ImageNet_Models_Transfer_Better_CVPR_2019_paper.html — Kornblith, Shlens and Le, Do Better ImageNet Models Transfer Better? (CVPR 2019)

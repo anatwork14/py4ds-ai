@@ -19,7 +19,7 @@ Completion requires all four instructor criteria evidenced, source/lint/syntheti
 - Installed: Hermes `0.21.5+7091.g93c9360`, Codex `0.162.0`, tmux `3.0a`, uv `0.12.13`, project Python `3.12.14`; GTX 1080 Ti, 11,264 MiB. No new GPU work is authorized.
 - Current safe baseline: uv lock check PASS; Ruff PASS; 117 tests PASS in 17.57s; saved-prediction verifier PASS with `VERIFIED_FROM_SAVED_PREDICTIONS`. These pre-worker runs do not prove the final delivery SHA.
 - Protected snapshot: 115 manifest/config/run-array/checkpoint/CSV/JSON files, 651,103,653 bytes, hashed under `../py4ds-ai-runtime/bootstrap-20261010/protected-baseline.json`. Independently match expected scientific digests before relying on baseline.
-- Legacy PDF extraction via `pdftotext` was unavailable; alternative Python extraction remains required. Notebook parsed without execution. Existing legacy notebook/PDF/arrays are historical, not current experimental evidence.
+- Legacy PDF extracted using ephemeral pypdf: 22 pages, 41,182 text characters. Notebook parsed without execution. Both were inspected; existing legacy notebook/PDF/arrays are historical, not current experimental evidence.
 
 ## Academic requirements and evidence map
 
