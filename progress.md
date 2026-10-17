@@ -1,5 +1,7 @@
 # CO3117 academic project — Hermes progress
 
+> **Coursework baseline closed (2026-10-17):** PRs #1, #2 and #3 were merged into `main` as an academic baseline. G5 *repository integration* is complete, but full Windows validation and a new exact-final-SHA test run were not performed. D01 production-style operational certification is waived for this coursework baseline, **not** falsely marked ACCEPTED. The entries below preserve historical 2026-10-10 gate and runtime status; do not interpret them as active coursework blockers or proof that remote scheduled jobs stopped. The held-out test remains sealed.
+
 **Updated:** 2026-10-10, Asia/Ho_Chi_Minh. **Authority:** sole Hermes technical/research reviewer, direct owner mandate `1558312501085478916`; bounded Codex implementation worker. External ChatGPT GO and GitHub-comment dispatch are retired. See [charter](docs/HERMES_ORCHESTRATION_CHARTER.md), [master plan](docs/HERMES_MASTER_PLAN.md), [task board](docs/HERMES_TASK_BOARD.md) and [decisions](docs/HERMES_DECISION_LOG.md).
 
 **Current state:** G4 ACCEPTED at `99dd935d04ee34f99c70be1544bfd661ecb1492e`, verified PR #3 comment `6093259139`. G5 final-tree/integration review is in progress. Operational bootstrap has real worker and three monitoring executions; watchdog threshold/changed-state notification remediation is running separately. No final academic/integration claim yet.
