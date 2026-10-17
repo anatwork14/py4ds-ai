@@ -1,5 +1,7 @@
 # Hermes live task board
 
+> **ARCHIVED — COURSEWORK BASELINE (2026-10-17):** PRs #1 → #2 → #3 are merged into `main`. The historical task states below are retained for provenance, not an active requirement for school-project closeout. G5's PR integration is finished. D01 operational/production-style handover is out of scope; it was not independently accepted. Previous watchdog, disk and scheduler warnings are **not claimed fixed or disabled**. Verify existing shared infrastructure separately before changing any active jobs. No further held-out test evaluation is authorized.
+
 Authority: direct owner mandate `1558312501085478916`; Hermes charter. Updated 2026-10-10. Trusted local transitions never dispatch from GitHub comments.
 
 | Task | Priority/gate | Dependencies | State | Executor / evidence |
