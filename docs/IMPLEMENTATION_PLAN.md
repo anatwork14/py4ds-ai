@@ -16,7 +16,6 @@
 
 ## Target project layout (adapt rather than duplicate existing code)
 
-- AGENTS.md: instructions, evaluation contract and quality gates.
 - configs/: reproducible baseline/feature/deep configs; each documents seed, dataset location, paths, hyperparameters, device and budget.
 - src/data/: read-only import, audit, hashes/duplicate review, class mapping, split manifest, dataset interfaces.
 - src/features/: HOG, SIFT/visual-vocabulary, deterministic ResNet18 embeddings, provenance-aware cache.
