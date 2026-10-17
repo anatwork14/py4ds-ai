@@ -2,7 +2,7 @@
 
 **Updated:** 2026-10-10, Asia/Ho_Chi_Minh. **Authority:** sole Hermes technical/research reviewer, direct owner mandate `1558312501085478916`; bounded Codex implementation worker. External ChatGPT GO and GitHub-comment dispatch are retired. See [charter](docs/HERMES_ORCHESTRATION_CHARTER.md), [master plan](docs/HERMES_MASTER_PLAN.md), [task board](docs/HERMES_TASK_BOARD.md) and [decisions](docs/HERMES_DECISION_LOG.md).
 
-**Current state:** G4 content/evidence independently reviewed; exact containing-commit checkpoint required before G5 acceptance. Operational bootstrap has real worker and three monitoring executions; watchdog threshold/changed-state notification remediation is running separately. No final academic/integration claim yet.
+**Current state:** G4 ACCEPTED at `99dd935d04ee34f99c70be1544bfd661ecb1492e`, verified PR #3 comment `6093259139`. G5 final-tree/integration review is in progress. Operational bootstrap has real worker and three monitoring executions; watchdog threshold/changed-state notification remediation is running separately. No final academic/integration claim yet.
 
 ## Live execution gates
 
@@ -12,8 +12,8 @@
 | G1 locked environment/tests | ACCEPTED, historical; fresh checks also passed | `c77c521688ae67bbc3695a5966ba10ceb73e76c9`; fresh 117 tests, Ruff/lock PASS |
 | G2 saved evidence | ACCEPTED; fresh read-only audit PASS | Original metrics/predictions digests; verifier `VERIFIED_FROM_SAVED_PREDICTIONS` |
 | G3 Grad-CAM | ACCEPTED, historical | `0b98d73113f6b38a5e5e904a47f41e2c60d8f2e6`; six corrected local validation overlays |
-| G4 report | CONTENT ACCEPTED; exact-SHA checkpoint pending | [G4 acceptance](docs/HERMES_G4_ACCEPTANCE.md); two identical current renders; generated scores unchanged |
-| G5 integration | NEXT; NOT ACCEPTED | Clean locked fixture/CLI checks and ordered stack review required |
+| G4 report | ACCEPTED | SHA `99dd935d04ee34f99c70be1544bfd661ecb1492e`, PR comment `6093259139`; exact-SHA checks, two identical renders, unchanged generated scores |
+| G5 integration | IN PROGRESS; NOT ACCEPTED | Clean baseline passed; final tree/ordered stack gate still required |
 
 ## Actual ownership/bootstrap evidence
 

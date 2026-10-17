@@ -1,5 +1,9 @@
 # CO3117 - Machine Learning Project (Semester 252, AY 2025-2026)
 
+**Current submission:** [`docs/FINAL_REPORT.md`](docs/FINAL_REPORT.md); technical governance and verified gates: [`docs/HERMES_MASTER_PLAN.md`](docs/HERMES_MASTER_PLAN.md) and [`progress.md`](progress.md).
+
+**Legacy archive warning:** `modules/`, `notebooks/main.ipynb`, `report.pdf`, `dataset_metadata.json` and inherited feature arrays are historical artifacts, not the canonical reproducible pipeline or current measurements. Legacy helpers include raw-directory mutation/deletion and unguarded test use; do not execute that notebook or those helpers against source data or the sealed benchmark. Use the tested `src/py4ds_ai/` package and `scripts/` commands below. No historical training/inference is rerun for finalization, and image-bearing outputs stay local pending rights verification.
+
 ## 📌 Course Information
 - **Course Name:** Machine Learning
 - **Course Code:** CO3117
