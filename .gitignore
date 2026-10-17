@@ -1,22 +1,55 @@
+# Python environments and caches
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+*.egg-info/
+dist/
+build/
+.ipynb_checkpoints/
+
+# Local secrets and machine-specific settings
+.env
+.env.*
+!.env.example
+*.log
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Dataset downloads and generated research artifacts (never commit raw images)
+data/raw/
+data/manifests/
+data/processed/
+data/interim/
+data/external/
+dataset/
 **/seg_train/
 **/seg_test/
 **/seg_pred/
 **/archive.zip
-eda_result/
-assignment.md
-dataset/
-report/
-results.md
-*.pyc
-.venv/
-__pycache__/
-.pytest_cache/
-.ruff_cache/
-*.egg-info/
-dist/
-build/
-data/raw/
-# Dataset-derived manifests stay local until Kaggle terms are reviewed.
-data/manifests/
 runs/
 artifacts/
+outputs/
+checkpoints/
+eda_result/
+report/
+
+# Generated model weights, outputs and feature caches.
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+*.onnx
+*.joblib
+*.pkl
+*.npy
+*.npz
+
+# Historic files under legacy/ are already tracked and intentionally retained.

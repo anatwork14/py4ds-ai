@@ -1,42 +1,54 @@
-# CO3117 — Machine Learning Project (Semester 252, AY 2025–2026)
+# Intel Natural Scene Classification — CO3117 Machine Learning
 
-**Topic:** Intel Natural Scene Classification (six classes). This repository contains our course-assignment implementation, documentation, and historical experimental results.
+Course assignment · Semester 252 (AY 2025–2026) · Python / scikit-learn / PyTorch
 
-**Main report:** [Final Evaluation Report](docs/FINAL_REPORT.md) · [Literature Review](docs/LITERATURE_REVIEW.md)
+A reproducible comparison of **traditional machine learning**, **pretrained image features**, and **deep learning** on the six-class Intel Natural Scene Classification dataset.
 
-The reviewed implementation has been merged into `main`. Earlier local checks reported passing tests, but the final merged version has not yet been independently tested on native Windows. Saved test artifacts are not included in Git.
+**Classes:** `buildings`, `forest`, `glacier`, `mountain`, `sea`, `street`.
 
-## 📌 Course Information
-- **Course Name:** Machine Learning
-- **Course Code:** CO3117
-- **Semester:** 252
-- **Academic Year:** 2025-2026
+| Selected approach | Validation macro-F1 | Held-out accuracy | Held-out macro-F1 |
+|---|---:|---:|---:|
+| ResNet18, layer4 fine-tuned | 0.929137 | 0.930000 | 0.931004 |
 
-## 👨‍🏫 Instructor
-- **Dr. Trương Vĩnh Lân**
+These are **historical saved experiment results**. Only the selected model was scored once on the sealed test set (3,000 images). See the [final report](docs/FINAL_REPORT.md) for the complete comparison, per-class metrics, and limitations.
 
-## 👥 Team Members
+## Project overview
 
-| Name | Student ID | Role |
-| :--- | :--- | :--- |
-| **Nguyễn Văn An** | 2352013 | Leader |
-| **Huỳnh Vương Khang** | 2350011 | Member |
-| **Nguyễn Tấn Phát** | 2352889 | Member |
-| **Lê Đặng Khánh Quỳnh** | 2353037 | Member |
+| Area | Content |
+|---|---|
+| Dataset and split | Train 11,868 · validation 2,100 · held-out test 3,000 |
+| Classical ML | HOG and SIFT–Bag of Visual Words with linear classifiers |
+| Transfer learning | Frozen ImageNet ResNet18 embeddings + linear classifier |
+| Deep learning | ResNet18 head-only training and layer4 fine-tuning |
+| Model selection | Validation macro-F1; one final held-out evaluation |
+| Evaluation | Accuracy, macro/weighted F1, confusion matrix, classwise errors and Grad-CAM |
 
-## Project Objective
+## Repository structure
 
-Build a reproducible six-class image-classification comparison for the Intel Natural Scene Classification dataset: classical HOG/SIFT-BoVW models, frozen ImageNet ResNet18 features, and trained ResNet18 models. The fixed alphabetical label map is `buildings`, `forest`, `glacier`, `mountain`, `sea`, `street`.
+```text
+py4ds-ai/
+├── configs/               # Frozen experiment selection and pHash review ledger
+├── data/                  # Local datasets and generated manifests (ignored by Git)
+│   └── README.md
+├── docs/                  # Academic report, methodology, audits, references
+│   └── PROJECT_STRUCTURE.md
+├── legacy/                # Archived original notebook, PDF, helpers and arrays
+├── notebooks/             # Workspace for new exploratory notebooks
+├── scripts/               # Thin CLI entry points and report verification
+├── src/py4ds_ai/
+│   ├── data/              # Downloading, read-only auditing, splitting
+│   ├── features/          # HOG and SIFT–BoVW
+│   └── models/            # Classical baselines, ResNet, selection, metrics
+├── tests/                 # Synthetic/unit/contract tests
+├── pyproject.toml         # Python package, CLI definitions, test/lint setup
+└── uv.lock               # Pinned dependency resolution
+```
 
-## Data and Split Protocol
+See [Project Structure & Reproducibility](docs/PROJECT_STRUCTURE.md) for artifact locations and the distinction between active and historical files.
 
-Original files are kept read-only. The deterministic validation split is drawn from `seg_train`; `seg_test` remains the final test set; `seg_pred` is retained as an unlabeled prediction pool. Exact SHA-256 overlap is checked. pHash candidates are reviewed through the explicit ledger [`configs/phash-review-seed-42.csv`](configs/phash-review-seed-42.csv); 43 non-test rows were excluded conservatively, and all test rows were preserved. Only those flagged pairs were visually audited for leakage, not for exploratory analysis or model selection. Four near-duplicate candidate pairs within test remain a stated independence limitation. Exploratory sample montages use training images only.
+## Getting started — Windows PowerShell
 
-The real-data audit and its caveats are recorded in [`docs/PHASE1_DATA_AUDIT.md`](docs/PHASE1_DATA_AUDIT.md). The dataset is not included in Git.
-
-## Quick start — Windows PowerShell
-
-Install [Git](https://git-scm.com/), [Python 3.12](https://www.python.org/downloads/), and [uv](https://docs.astral.sh/uv/). From PowerShell:
+Install [Git](https://git-scm.com/), [uv](https://docs.astral.sh/uv/), and a compatible 64-bit Python 3.12 interpreter. Then:
 
 ```powershell
 git clone https://github.com/anatwork14/py4ds-ai.git
@@ -47,29 +59,52 @@ uv run --locked --extra dev python -m pytest -q
 uv run --locked --extra dev ruff check src tests scripts
 ```
 
-The lockfile includes Windows x86-64 wheels for the pinned CUDA-enabled PyTorch packages. This is **not** a claim of verified Windows/CUDA GPU training support. Unit tests can generally run without GPU acceleration.
+The lock pins CUDA 12.6 PyTorch wheels and includes Windows x86-64 dependency resolution. **Windows installation and GPU execution have not been independently verified on the final revision.** Most synthetic/unit tests do not need model training or a GPU.
 
-## Dataset and reproducibility
+Linux users can run the same `uv` verification commands in a shell with Python 3.12; platform-specific package availability still applies.
 
-The [Intel Image Classification dataset](https://www.kaggle.com/datasets/puneet6060/intel-image-classification) is not distributed with the repository. Respect its usage conditions. Original images and saved run artifacts stay local and are ignored by Git.
+## Dataset and experiments
 
-The reviewed comparison uses a fixed split: **11,868 training**, **2,100 validation**, and **3,000 held-out test** images. The [pHash review ledger](configs/phash-review-seed-42.csv) records near-duplicate decisions, and the [data audit](docs/PHASE1_DATA_AUDIT.md) explains the protocol.
+The [Intel Image Classification dataset](https://www.kaggle.com/datasets/puneet6060/intel-image-classification) is **not** in the repository. Follow [data/README.md](data/README.md) and the [dataset audit](docs/PHASE1_DATA_AUDIT.md) for source layout and the historical reviewed split. The original images must remain unchanged.
 
-The following files are **historical legacy artifacts**, not the current source of evaluation results: `modules/`, `notebooks/main.ipynb`, `report.pdf`, and `features/`. Do not execute old preprocessing code against the source dataset, since it may move or delete images.
+The tracked [pHash review ledger](configs/phash-review-seed-42.csv) and [frozen selection metadata](configs/final-selection-seed-42-phash-reviewed.json) identify the original experiment. They are *provenance records*, not an invitation to change splits, rerun tuning, or choose a different model.
 
-The maintained implementation resides in `src/py4ds_ai/`; command-line scripts are in `scripts/`, with synthetic/unit tests in `tests/`. The [implementation plan](docs/IMPLEMENTATION_PLAN.md) and [experiment log](docs/EXPERIMENT_STATUS.md) describe the design and runs.
+**Do not rerun the held-out test evaluator** (`py4ds-evaluate-final` or `scripts/evaluate_final.py`) for this frozen project. Current experiment artifacts and checkpoints are stored locally, outside Git.
 
-## Results
-
-Five approaches were compared using validation evidence: HOG/classical ML, SIFT–Bag-of-Visual-Words, frozen ResNet18 embeddings, ResNet18 classification-head training, and ResNet18 layer4 fine-tuning.
-
-The selected **layer4 fine-tuned ResNet18** achieved **0.929137 validation macro-F1**. Its one historical held-out evaluation achieved **93.00% accuracy**, **0.931004 macro-F1**, and **0.929743 weighted-F1** on 3,000 test images. See [the final report](docs/FINAL_REPORT.md) for per-class results, citations, and limitations.
-
-**Do not rerun the held-out test evaluator** for this frozen benchmark. If the original saved artifacts are available locally, the following commands safely rerender the report or audit saved prediction files without model inference:
+To **audit saved predictions** or rerender tables without model inference, when the original local artifacts are present:
 
 ```powershell
-uv run --locked --extra dev python scripts/render_report.py
 uv run --locked --extra dev python scripts/verify_saved_final_artifacts.py --expected-metrics-sha256 4df9443c7ad28c9ddd36cc461d38f5f7ed1a0b43b819d2ea0e400dedf9b4967e --expected-predictions-sha256 85d68f7fac4351716964ec0db773126805ac530c269ed37c607af8cae0486dde
+uv run --locked --extra dev python scripts/render_report.py
 ```
 
-**Limitations:** one split/seed; four potential near-duplicate test-image pairs; a historical dirty training worktree; incomplete comparable compute timings; and unverified image redistribution rights. Original dataset images and image-bearing outputs should not be published until their rights are established.
+Without the existing local `runs/` and `data/manifests/` evidence, these commands cannot reproduce the original scores from Git alone. They are not commands to generate a fresh experiment.
+
+## Documentation
+
+- [Final evaluation report](docs/FINAL_REPORT.md) — methodology, comparisons, metrics, citations and limitations.
+- [Literature review](docs/LITERATURE_REVIEW.md) — HOG, SIFT/BoVW, residual networks, transfer learning, Grad-CAM.
+- [Experiment log](docs/EXPERIMENT_STATUS.md) — historical validations, selected checkpoint and artifact identifiers.
+- [Dataset preparation audit](docs/PHASE1_DATA_AUDIT.md) — immutable split and leakage adjudication.
+- [Repository layout and usage](docs/PROJECT_STRUCTURE.md) — current code, local artifacts and archived files.
+- [Original implementation plan](docs/IMPLEMENTATION_PLAN.md) — historical design and acceptance criteria.
+
+## Course information
+
+**CO3117 — Machine Learning**, Semester 252, AY 2025–2026  
+**Instructor:** Dr. Trương Vĩnh Lân
+
+| Member | Student ID |
+|---|---|
+| Nguyễn Văn An (leader) | 2352013 |
+| Huỳnh Vương Khang | 2350011 |
+| Nguyễn Tấn Phát | 2352889 |
+| Lê Đặng Khánh Quỳnh | 2353037 |
+
+## Limitations and archival notes
+
+One split and seed, four potential within-test near-duplicate pairs, historical dirty training-worktree provenance, non-comparable compute timings, and unverified dataset redistribution rights limit interpretation. The project does **not** represent a new benchmark or proof of reproducible training from a clean commit.
+
+The old submission PDF, notebook, helper modules and feature arrays were relocated **byte-for-byte** into [legacy/](legacy/README.md); their scores are not the current evaluation. The maintained code is in `src/py4ds_ai/`. Do not run the original legacy preprocessing over raw images because it may move or delete files.
+
+No production deployment, agent orchestration, CI services, or new model training is required for this school assignment.
