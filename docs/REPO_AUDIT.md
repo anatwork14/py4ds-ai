@@ -9,7 +9,7 @@ Inspected: the main-branch README, metadata, requirements, `.gitignore`, four mo
 ## Repository and PR state
 
 - Local project: `py4ds-ai`; base `main` commit `7cffec2` (`update readme`). The draft PR head is `docs/agent-research-and-evaluation-protocol` at `ec12ee1`.
-- PR #1 is open and draft, targets `main`, and adds only `AGENTS.md`, `docs/IMPLEMENTATION_PLAN.md`, and `docs/LITERATURE_REVIEW.md` (333 insertions). No checks or earlier reviews were reported when inspected.[10]
+- At the time of this audit, PR #1 was a draft targeting `main` and added the initial protocol, implementation plan, and literature review (333 insertions). No checks or earlier reviews were reported when inspected. The initial automation protocol was later retired when the coursework repository was simplified.[10]
 - The implementation/audit work branch is `implementation/phase0-audit`, based on the PR head so its instructions remain available. The follow-up is therefore stacked on PR #1 until that draft is merged.
 - The clone's `origin` points to `anatwork14/py4ds-ai`; `upstream` points to `PhatLavar/ML_ASSIGNMENT`. The README's clone, repository, and Colab links still point to `PhatLavar/ML_ASSIGNMENT` / the standalone Drive notebook.
 - Date note: the PR documents use `2026-10-08` for code inspection/literature checking. The applicable task date is `2026-10-07`, while the machine's local clock read `2026-10-08 +07:00` and GitHub's PR `updatedAt` was `2026-10-07T23:07:16Z`. This is consistent if the documents use local time; record the timezone explicitly to avoid an apparent one-day discrepancy.[10]
