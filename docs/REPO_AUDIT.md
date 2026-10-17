@@ -1,5 +1,7 @@
 # Phase 0 — Repository, notebook, report, and environment audit
 
+> **Historical repository inventory:** This audit describes the file layout at the time of the original review. Legacy paths such as `report.pdf`, `features/`, `modules/`, `notebooks/main.ipynb`, `requirements.txt`, and `dataset_metadata.json` have since been moved byte-for-byte to [`legacy/`](../legacy/README.md). The commands and observations below are historical evidence, not instructions to run legacy preprocessing.
+
 ## Status and scope
 
 This is an audit record, not a new experiment report. The existing repository and draft PR #1 were inspected locally. No dataset was downloaded, no original image was changed, and no model was trained or evaluated during this phase.

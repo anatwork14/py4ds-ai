@@ -1,5 +1,7 @@
 # Implementation Plan and Acceptance Tests
 
+> **Implementation history:** This plan records the proposed design at project outset. The maintained code now resides in `src/py4ds_ai/{data,features,models}/`; generated data and runs remain local. The original helper scripts, feature arrays, notebook and PDF are archived under [`legacy/`](../legacy/README.md). Use the [README](../README.md) and [project structure guide](PROJECT_STRUCTURE.md) for the current layout. The completed held-out test must not be rerun.
+
 **Scope:** implement an auditable comparison of classical image features, pretrained ResNet18 embeddings, and trained CNNs for the Intel six-class scene dataset. This document is the build specification and acceptance checklist; actual implementation, test, run, and limitation status is maintained in [`EXPERIMENT_STATUS.md`](EXPERIMENT_STATUS.md).
 
 ## Baseline repository before implementation audit
