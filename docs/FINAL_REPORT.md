@@ -269,21 +269,9 @@ No test-image examples or image-bearing saliency figures are included here. Grad
 
 The model-inspection pipeline uses Grad-CAM on the output of the final ResNet18 `layer4` residual block, targeting the saved validation prediction. Six corrected validation-only overlays were regenerated locally from the frozen selected checkpoint and saved validation predictions after the crop-alignment correction. Their local QA manifest records sample IDs, true/predicted labels, source paths and per-image hashes; the reviewer has not independently inspected the local image bytes. Twelve earlier overlays (six head-only and six layer4) predate the correction and are marked superseded locally. The corrected overlays are qualitative visualizations, not causal or ground-truth explanations. No test images were used. All image-bearing outputs remain local and are neither embedded here nor committed while redistribution rights remain unverified. Do not rerun the held-out evaluator or select a different model based on these visualizations.
 
-## Scope of independent verification
+## Verification of saved results
 
-The earlier GitHub-only reviewer could inspect tracked source and report text,
-but did not have access to local artifact bytes; that review alone did not
-independently verify the quoted test aggregates. On 2026-10-10, Hermes's
-Ubuntu custody audit used `scripts/verify_saved_final_artifacts.py` to
-recompute aggregates and verify sample IDs, order, and labels from the saved
-prediction CSV against the immutable manifest. It exited 0 with
-`VERIFIED_FROM_SAVED_PREDICTIONS`. This is a read-only arithmetic and identity
-audit by the current orchestrator, not an independent reproduction of the
-original training or evaluation. Current G4 report-renderer and final-SHA acceptance are recorded in
-[`HERMES_G4_ACCEPTANCE.md`](HERMES_G4_ACCEPTANCE.md). Review history remains in
-[`FINAL_REVIEW_2026-10-08.md`](FINAL_REVIEW_2026-10-08.md); current authority
-and gate status are recorded in [`HERMES_MASTER_PLAN.md`](HERMES_MASTER_PLAN.md)
-and [`HERMES_DECISION_LOG.md`](HERMES_DECISION_LOG.md).
+A read-only audit on 2026-10-10 used `scripts/verify_saved_final_artifacts.py` to recompute classification aggregates and validate sample IDs, ordering and labels against the immutable manifest. The recorded result was `VERIFIED_FROM_SAVED_PREDICTIONS`. This checks the consistency of **already-saved predictions**; it does not independently reproduce training or inference, and it is not a new held-out evaluation. The saved artifact hashes and provenance limitations are documented above. Repository cleanup did not rerun the sealed benchmark.
 
 ## Four course criteria
 
