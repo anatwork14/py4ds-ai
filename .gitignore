@@ -8,3 +8,15 @@ dataset/
 report/
 results.md
 *.pyc
+.venv/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+dist/
+build/
+data/raw/
+# Dataset-derived manifests stay local until Kaggle terms are reviewed.
+data/manifests/
+runs/
+artifacts/

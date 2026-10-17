@@ -1,0 +1,89 @@
+{
+  "candidate_count": 5,
+  "candidates": [
+    {
+      "checkpoint_path": "runs/seed-42-phash-reviewed/cnn18/layer4-imagenet-v1/best_checkpoint.pt",
+      "checkpoint_sha256": "84fd9791276833d6dd8a5a6d1e17c1d89cc41eab8922002774c309a6ffbfd019",
+      "config_path": "runs/seed-42-phash-reviewed/cnn18/layer4-imagenet-v1/config.json",
+      "manifest_sha256": "27c17f497e89a8f3b72975b45fcd1e44038e63edddbd4e721437a9a3500c982e",
+      "metrics_key": "best_validation",
+      "metrics_path": "runs/seed-42-phash-reviewed/cnn18/layer4-imagenet-v1/metrics.json",
+      "model_id": "resnet18-cnn-layer4",
+      "run_id": "runs/seed-42-phash-reviewed/cnn18/layer4-imagenet-v1",
+      "test_status": "NOT RUN",
+      "validation_accuracy": 0.9280952380952381,
+      "validation_macro_f1": 0.9291367758701146
+    },
+    {
+      "checkpoint_path": "runs/seed-42-phash-reviewed/cnn18/head-imagenet-v1/best_checkpoint.pt",
+      "checkpoint_sha256": "63c17d5483416cb51812abf184fd18fb0c6ff1fe5d439f0282aedc9465d08e47",
+      "config_path": "runs/seed-42-phash-reviewed/cnn18/head-imagenet-v1/config.json",
+      "manifest_sha256": "27c17f497e89a8f3b72975b45fcd1e44038e63edddbd4e721437a9a3500c982e",
+      "metrics_key": "best_validation",
+      "metrics_path": "runs/seed-42-phash-reviewed/cnn18/head-imagenet-v1/metrics.json",
+      "model_id": "resnet18-cnn-head",
+      "run_id": "runs/seed-42-phash-reviewed/cnn18/head-imagenet-v1",
+      "test_status": "NOT RUN",
+      "validation_accuracy": 0.9071428571428571,
+      "validation_macro_f1": 0.9087108094276887
+    },
+    {
+      "checkpoint_path": null,
+      "checkpoint_sha256": null,
+      "config_path": "runs/seed-42-phash-reviewed/resnet18/imagenet-v1/config.json",
+      "manifest_sha256": "27c17f497e89a8f3b72975b45fcd1e44038e63edddbd4e721437a9a3500c982e",
+      "metrics_key": "best_validation",
+      "metrics_path": "runs/seed-42-phash-reviewed/resnet18/imagenet-v1/metrics.json",
+      "model_id": "resnet18-hybrid-linear_svc-C0.1",
+      "run_id": "runs/seed-42-phash-reviewed/resnet18/imagenet-v1",
+      "test_status": "NOT RUN",
+      "validation_accuracy": 0.9019047619047619,
+      "validation_macro_f1": 0.903314585848312
+    },
+    {
+      "checkpoint_path": null,
+      "checkpoint_sha256": null,
+      "config_path": "runs/seed-42-phash-reviewed/classical/hog/config.json",
+      "manifest_sha256": "27c17f497e89a8f3b72975b45fcd1e44038e63edddbd4e721437a9a3500c982e",
+      "metrics_key": "best_classical_validation",
+      "metrics_path": "runs/seed-42-phash-reviewed/classical/hog/metrics.json",
+      "model_id": "hog-logistic_regression-C0.01",
+      "run_id": "runs/seed-42-phash-reviewed/classical/hog",
+      "test_status": "NOT RUN",
+      "validation_accuracy": 0.6742857142857143,
+      "validation_macro_f1": 0.6768931169189022
+    },
+    {
+      "checkpoint_path": null,
+      "checkpoint_sha256": null,
+      "config_path": "runs/seed-42-phash-reviewed/classical/sift-bovw/config.json",
+      "manifest_sha256": "27c17f497e89a8f3b72975b45fcd1e44038e63edddbd4e721437a9a3500c982e",
+      "metrics_key": "best_bovw_validation",
+      "metrics_path": "runs/seed-42-phash-reviewed/classical/sift-bovw/metrics.json",
+      "model_id": "sift-bovw-128-logistic_regression-C1",
+      "run_id": "runs/seed-42-phash-reviewed/classical/sift-bovw",
+      "test_status": "NOT RUN",
+      "validation_accuracy": 0.5952380952380952,
+      "validation_macro_f1": 0.5928609981447652
+    }
+  ],
+  "manifest_path": "data/manifests/seed-42-phash-reviewed/split_manifest.csv",
+  "manifest_sha256": "27c17f497e89a8f3b72975b45fcd1e44038e63edddbd4e721437a9a3500c982e",
+  "schema_version": 1,
+  "selected_model": {
+    "checkpoint_path": "runs/seed-42-phash-reviewed/cnn18/layer4-imagenet-v1/best_checkpoint.pt",
+    "checkpoint_sha256": "84fd9791276833d6dd8a5a6d1e17c1d89cc41eab8922002774c309a6ffbfd019",
+    "config_path": "runs/seed-42-phash-reviewed/cnn18/layer4-imagenet-v1/config.json",
+    "manifest_sha256": "27c17f497e89a8f3b72975b45fcd1e44038e63edddbd4e721437a9a3500c982e",
+    "metrics_key": "best_validation",
+    "metrics_path": "runs/seed-42-phash-reviewed/cnn18/layer4-imagenet-v1/metrics.json",
+    "model_id": "resnet18-cnn-layer4",
+    "run_id": "runs/seed-42-phash-reviewed/cnn18/layer4-imagenet-v1",
+    "test_status": "NOT RUN",
+    "validation_accuracy": 0.9280952380952381,
+    "validation_macro_f1": 0.9291367758701146
+  },
+  "selection_created_at_utc": "2026-10-08T11:10:33+00:00",
+  "selection_rule": "highest validation macro-F1; ties broken by ascending run_id",
+  "test_status": "NOT RUN"
+}

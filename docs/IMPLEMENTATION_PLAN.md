@@ -1,8 +1,8 @@
 # Implementation Plan and Acceptance Tests
 
-**Scope:** implement an auditable comparison of classical image features, pretrained ResNet18 embeddings and end-to-end trained CNNs for the Intel 6-class scene dataset. This document is a **build specification**, not a claim that the scripts below already exist or were run.
+**Scope:** implement an auditable comparison of classical image features, pretrained ResNet18 embeddings, and trained CNNs for the Intel six-class scene dataset. This document is the build specification and acceptance checklist; actual implementation, test, run, and limitation status is maintained in [`EXPERIMENT_STATUS.md`](EXPERIMENT_STATUS.md).
 
-## What is in the existing repository today (code inspection 2026-10-08)
+## Baseline repository before implementation audit
 
 - README.md: overall aim and run instructions, but mismatched clone/Colab references to PhatLavar/ML_ASSIGNMENT.
 - dataset_metadata.json: six alphabetically sorted labels, 150×150 input, an RGB mean/std vector, claimed 16,928 clean labeled images, split folder names. Raw audit trace and normalization provenance not included.
@@ -91,15 +91,15 @@ The tested modules, not notebook cell side effects, must implement each step. Th
 
 ### Stage 5 — Final selection, evaluation and reporting
 
-**Input:** frozen selected configs/checkpoints, original locked test manifest. **Output:** run-scoped final metrics, prediction CSVs, tables, confusion matrices, sample explanation plots, report.
+**Input:** frozen selected config/checkpoint, original locked test manifest. **Output:** one run-scoped final evaluation for the selected model, prediction CSV, metrics, confusion matrices and report. Unselected models retain `NOT RUN` test status.
 
 - Before any final test, write selected_models.json with config IDs, validation scores, checkpoints and hashes. No tuning after seeing test.
-- Evaluate each **predeclared comparator** on the same held-out set once, no per-model cherry-picked cleaning/split.
-- Generate: raw and normalized six-by-six confusion matrices, accuracy, macro/weighted F1, per-class precision/recall/F1/support, train time, measured inference time with stated batch/device and optional confidence intervals.
+- For this project, evaluate the frozen validation winner once; preserve `NOT RUN` test status for the other candidates and the majority baseline. Do not use the final test to compare or select models.
+- Generate for the selected model: raw and normalized six-by-six confusion matrices, accuracy, macro/weighted F1, per-class precision/recall/F1/support, parameter counts and measured inference time with stated batch/device. Disclose that no multi-seed confidence interval was run.
 - Label scores by split and experiment ID. If CSV results have missing fields or some models did not run, render NOT RUN; never fill a table with guesses.
 - Discuss strongest/weakest class, likely visual overlaps, efficiency/accuracy trade-offs, domain shift, limitations of this single benchmark, and the cost of feature engineering vs learned representations.
 - Test Grad-CAM for valid output shape/finite values; explain illustrative rather than causal guarantees.
-- Quality gate: regenerating tables from saved predictions returns the same values as metrics JSON, to a stated precision.
+- Quality gate: `scripts/render_report.py` regenerates result tables from the frozen selection and saved metrics; validation scores, confusion-matrix totals, accuracy, per-class supports and one-time test state are checked before writing.
 
 ### Stage 6 — Literature and delivery
 
@@ -120,17 +120,63 @@ Each run must save:
 - figures/: loss/accuracy curves, confusion matrices, failure gallery, Grad-CAM, dataset plots.
 - stdout.log and structured warnings; checkpoint reference and cache manifest.
 
-## Proposed minimal execution CLI (names are specification until implemented)
+## Current and planned execution CLIs
 
-1. python scripts/prepare_data.py --data-root data/raw --val-fraction 0.15 --seed 42
-2. python scripts/run_classical.py --manifest data/manifests/split_manifest.csv --config configs/classical.yaml
-3. python scripts/run_embeddings.py --manifest data/manifests/split_manifest.csv --config configs/embeddings.yaml
-4. python scripts/run_deep.py --manifest data/manifests/split_manifest.csv --config configs/resnet18.yaml
-5. python scripts/evaluate_final.py --selection runs/selected_models.json
-6. python scripts/render_report.py --runs-dir runs --output docs/RESULTS.md
-7. python -m pytest -q
+All core preparation, classical, frozen-embedding, CNN-training, validation-selection, final-evaluation, and report-rendering CLIs are implemented. Five reviewed-manifest validation candidates and the validation-only selection are complete. The selected layer4-fine-tuned ResNet18 was evaluated once; the report and status document record its test results. Do not rerun the evaluator for this manifest. Remaining delivery gates are to commit/push the documentation and renderer, inspect remote PR/CI state, and retain the unresolved dataset-rights caveat.
 
-**These commands are required targets, not verified runnable commands yet.** The coding agent must implement and execute them, document exact output/error and leave an auditable record.
+```bash
+uv run --locked --extra dev py4ds-prepare \
+  --data-root data/raw/extracted \
+  --output-dir data/manifests/seed-42-phash-reviewed \
+  --val-fraction 0.15 --seed 42 \
+  --phash-review-ledger configs/phash-review-seed-42.csv
+
+uv run --locked --extra dev py4ds-classical \
+  --manifest data/manifests/seed-42-phash-reviewed/split_manifest.csv \
+  --output-dir runs/seed-42-phash-reviewed/classical/hog --seed 42
+
+uv run --locked --extra dev py4ds-bovw \
+  --manifest data/manifests/seed-42-phash-reviewed/split_manifest.csv \
+  --output-dir runs/seed-42-phash-reviewed/classical/sift-bovw \
+  --vocab-sizes 64 128 --max-descriptors 30000 \
+  --c-values 0.1 1.0 --seed 42
+
+uv run --locked --extra dev py4ds-resnet \
+  --manifest data/manifests/seed-42-phash-reviewed/split_manifest.csv \
+  --output-dir runs/seed-42-phash-reviewed/resnet18/imagenet-v1 \
+  --pretrained --device cuda:0 --batch-size 64 --num-workers 4 \
+  --c-values 0.1 1.0 --seed 42
+
+uv run --locked --extra dev py4ds-cnn \
+  --manifest data/manifests/seed-42-phash-reviewed/split_manifest.csv \
+  --output-dir runs/seed-42-phash-reviewed/cnn18/head-imagenet-v1 \
+  --pretrained --device cuda:0 --epochs 5 --patience 2 \
+  --batch-size 64 --num-workers 4 --seed 42 --gradcam
+
+uv run --locked --extra dev py4ds-cnn \
+  --manifest data/manifests/seed-42-phash-reviewed/split_manifest.csv \
+  --output-dir runs/seed-42-phash-reviewed/cnn18/layer4-imagenet-v1 \
+  --pretrained --fine-tune-layer4 --device cuda:0 --epochs 5 --patience 2 \
+  --batch-size 64 --num-workers 4 --seed 42 \
+  --learning-rate 1e-3 --backbone-learning-rate 1e-5 --gradcam
+
+# Only after every validation run is complete:
+uv run --locked --extra dev py4ds-freeze-selection \
+  --runs-root runs/seed-42-phash-reviewed \
+  --manifest data/manifests/seed-42-phash-reviewed/split_manifest.csv \
+  --output configs/final-selection-seed-42-phash-reviewed.json
+
+# Historical one-time evaluation command; guard is COMPLETED for this manifest.
+# Do not rerun it for this project.
+uv run --locked --extra dev py4ds-evaluate-final \
+  --project-root . \
+  --selection configs/final-selection-seed-42-phash-reviewed.json \
+  --manifest data/manifests/seed-42-phash-reviewed/split_manifest.csv \
+  --output-dir runs/seed-42-phash-reviewed/final-evaluation \
+  --device cuda:0 --batch-size 64 --num-workers 4
+```
+
+CNN training, validation selection, final evaluation, and report-rendering CLIs are implemented. The final test guard is already `COMPLETED`; report output is generated from local metrics and selection artifacts. The documented final-evaluation command is included for provenance only and must not be rerun against this manifest.
 
 ## Test inventory (examples of executable assertions)
 
